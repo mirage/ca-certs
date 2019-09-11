@@ -1,0 +1,22 @@
+(lang dune 1.11)
+(name ca-certs)
+
+(generate_opam_files true)
+(source (github mirage/ca-certs))
+(documentation "https://mirage.github.io/ca-certs/doc")
+(license ISC)
+(maintainers "Etienne Millon <me@emillon.org>")
+(authors "Etienne Millon <me@emillon.org>")
+
+(package
+ (name ca-certs)
+ (depends)
+ (synopsis "Detect root CA certificates from the operating system")
+ (description
+   "\> TLS requires a set of root anchors (Certificate Authorities) to
+   "\> authenticate servers. This library exposes this list so that it can be
+   "\> registered with ocaml-tls.
+ )
+ ; tags are not included before (lang dune 2.0)
+ ; so an opam template is necessary until then
+ (tags (org:mirage)))

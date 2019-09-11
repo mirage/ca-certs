@@ -1,0 +1,17 @@
+(executable
+ (name test_e2e)
+ (libraries ca_certs tls.lwt lwt.unix))
+
+(alias
+ (name runtest)
+ (deps ./test_e2e.exe))
+
+(alias
+ (name runtest-e2e)
+ (action
+  (diff test_e2e.expected test_e2e.output)))
+
+(rule
+ (with-stdout-to
+  test_e2e.output
+  (run ./test_e2e.exe)))
