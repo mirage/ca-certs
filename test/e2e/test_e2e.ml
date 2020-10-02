@@ -15,18 +15,18 @@ let pp_result ppf = function
   | Unknown_exception e ->
       Format.fprintf ppf "Unknown_exception: %s" (Printexc.to_string e)
   | Authentication_failure e ->
-      Format.fprintf ppf "Authentication failure (%a)"
-        pp_leaf_validation_error e
+      Format.fprintf ppf "Authentication failure (%a)" pp_leaf_validation_error
+        e
 
 let make_client () =
   let open Lwt.Infix in
-  Ca_certs.detect () >>= (function
-      | Some r -> X509_lwt.authenticator r
-      | None ->
-        print_endline "no ca certificates found";
-        let verify ~host:_ _ = Error `InvalidChain in
-        Lwt.return verify) >|= fun authenticator ->
-  Tls.Config.client ~authenticator ()
+  (Ca_certs.detect () >>= function
+   | Some r -> X509_lwt.authenticator r
+   | None ->
+       print_endline "no ca certificates found";
+       let verify ~host:_ _ = Error `InvalidChain in
+       Lwt.return verify)
+  >|= fun authenticator -> Tls.Config.client ~authenticator ()
 
 let connect client host =
   let open Lwt in
