@@ -1,4 +1,4 @@
 (library
  (name ca_certs)
  (public_name ca-certs)
- (libraries lwt.unix))
+ (libraries x509 bos rresult fpath ptime.clock.os))

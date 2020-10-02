@@ -14,9 +14,12 @@ doc: "https://mirage.github.io/ca-certs/doc"
 bug-reports: "https://github.com/mirage/ca-certs/issues"
 depends: [
   "dune" {>= "2.0"}
+  "bos"
+  "fpath"
+  "rresult"
+  "x509" {>= "0.11.0"}
   "lwt" {with-test}
   "tls" {with-test}
-  "x509" {with-test & >= "0.11.0"}
 ]
 build: [
   ["dune" "subst"] {pinned}
@@ -34,3 +37,6 @@ build: [
 ]
 dev-repo: "git+https://github.com/mirage/ca-certs.git"
 tags: ["org:mirage"]
+depexts: [
+  ["ca_root_nss"] {os = "freebsd"}
+]

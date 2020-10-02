@@ -19,14 +19,14 @@ let pp_result ppf = function
         e
 
 let make_client () =
-  let open Lwt.Infix in
-  (Ca_certs.detect () >>= function
-   | Some r -> X509_lwt.authenticator r
-   | None ->
-       print_endline "no ca certificates found";
-       let verify ~host:_ _ = Error `InvalidChain in
-       Lwt.return verify)
-  >|= fun authenticator -> Tls.Config.client ~authenticator ()
+  let authenticator =
+    match Ca_certs.trust_anchor () with
+    | Ok ta -> ta
+    | Error (`Msg m) ->
+        print_endline ("no ca certificates found: " ^ m);
+        fun ~host:_ _ -> Error `InvalidChain
+  in
+  Tls.Config.client ~authenticator ()
 
 let connect client host =
   let open Lwt in
@@ -45,8 +45,7 @@ let test client host =
   Format.printf "%s -> %a\n" host pp_result result
 
 let main () =
-  let open Lwt in
-  make_client () >>= fun client ->
+  let client = make_client () in
   Lwt_list.iter_s (test client)
     [
       "google.com";
