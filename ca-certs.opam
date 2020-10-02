@@ -13,7 +13,7 @@ homepage: "https://github.com/mirage/ca-certs"
 doc: "https://mirage.github.io/ca-certs/doc"
 bug-reports: "https://github.com/mirage/ca-certs/issues"
 depends: [
-  "dune" {>= "1.11"}
+  "dune" {>= "2.0"}
   "lwt" {with-test}
   "tls" {with-test}
   "x509" {with-test & >= "0.11.0"}
