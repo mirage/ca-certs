@@ -1,6 +1,5 @@
 google.com -> Accepted
-self-signed.badssl.com -> Authentication failure: invalid certificate chain
+self-signed.badssl.com -> Authentication failure (invalid certificate chain)
 expired.badssl.com -> Authentication failure (leaf: expired)
-untrusted-root.badssl.com -> Authentication failure: invalid certificate chain
-revoked.badssl.com -> Authentication failure (leaf: expired)
+untrusted-root.badssl.com -> Authentication failure (invalid certificate chain)
 extended-validation.badssl.com -> Accepted

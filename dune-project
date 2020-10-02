@@ -10,7 +10,10 @@
 
 (package
  (name ca-certs)
- (depends)
+ (depends
+  (lwt :with-test)
+  (tls :with-test)
+  (x509 (and :with-test (>= 0.11.0))))
  (synopsis "Detect root CA certificates from the operating system")
  (description
    "\> TLS requires a set of root anchors (Certificate Authorities) to
