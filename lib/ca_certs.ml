@@ -1,15 +1,31 @@
-let detect_one path =
-  let path = Fpath.v path in
-  match Bos.OS.Path.exists path with
-  | Ok true -> Ok path
-  | _ -> Error (`Msg "not found")
+let issue =
+  {|Please report an issue at https://github.com/mirage/ca-certs, including:
+- the output of uname -s
+- the distribution you use
+- the location of default trust anchors (if known)
+|}
 
-let rec detect_list = function
-  | [] -> Error (`Msg "no trust anchor file exists")
-  | path :: paths -> (
-      match detect_one path with
-      | Ok path -> Ok path
-      | Error _ -> detect_list paths )
+let detect_one path =
+  let path' = Fpath.v path in
+  match Bos.OS.Path.exists path' with
+  | Ok true -> Ok path'
+  | _ ->
+      Error
+        (`Msg
+          ( "ca-certs: no trust anchor file found, looked into " ^ path ^ ".\n"
+          ^ issue ))
+
+let detect_list paths =
+  let rec one = function
+    | [] ->
+        Error
+          (`Msg
+            ( "ca-certs: no trust anchor file found, looked into "
+            ^ String.concat ", " paths ^ ".\n" ^ issue ))
+    | path :: paths -> (
+        match detect_one path with Ok path -> Ok path | Error _ -> one paths )
+  in
+  one paths
 
 (* from https://golang.org/src/crypto/x509/root_linux.go *)
 let linux_locations =
@@ -32,7 +48,8 @@ let macos_keychain_location =
 
 let ta_file_raw () =
   let open Rresult.R.Infix in
-  if Sys.win32 then Error (`Msg "windows is not supported at the moment")
+  if Sys.win32 then
+    Error (`Msg "ca-certs: windows is not supported at the moment")
   else
     let cmd = Bos.Cmd.(v "uname" % "-s") in
     Bos.OS.Cmd.(run_out cmd |> out_string |> success) >>= function
@@ -48,7 +65,7 @@ let ta_file_raw () =
         let tmpfile = Fpath.v (Filename.temp_file "cacert" "pem") in
         Bos.OS.Cmd.(run_out cmd |> out_file tmpfile |> success) >>| fun () ->
         tmpfile
-    | s -> Error (`Msg ("unknown system " ^ s))
+    | s -> Error (`Msg ("ca-certs: unknown system " ^ s ^ ".\n" ^ issue))
 
 let trust_anchor_filename () =
   let open Rresult.R.Infix in
