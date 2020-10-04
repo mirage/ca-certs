@@ -71,10 +71,10 @@ let trust_anchor_filename () =
   let open Rresult.R.Infix in
   ta_file_raw () >>| Fpath.to_string
 
-let trust_anchor ?hash_whitelist () =
+let trust_anchor ?crls ?hash_whitelist () =
   let open Rresult.R.Infix in
   ta_file_raw () >>= fun file ->
   Bos.OS.File.read file >>= fun data ->
   X509.Certificate.decode_pem_multiple (Cstruct.of_string data) >>| fun cas ->
   let time () = Some (Ptime_clock.now ()) in
-  X509.Authenticator.chain_of_trust ?hash_whitelist ~time cas
+  X509.Authenticator.chain_of_trust ?crls ?hash_whitelist ~time cas

@@ -11,7 +11,7 @@
 (package
  (name ca-certs)
  (depends
-  bos fpath rresult
+  bos fpath rresult mirage-crypto
   (x509 (>= 0.11.0))
   (lwt :with-test)
   (tls :with-test))

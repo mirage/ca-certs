@@ -2,6 +2,7 @@ val trust_anchor_filename : unit -> (string, [> `Msg of string ]) result
 (** Attempts to discover the trust anchor file on this host system. *)
 
 val trust_anchor :
+  ?crls:X509.CRL.t list ->
   ?hash_whitelist:Mirage_crypto.Hash.hash list ->
   unit ->
   (X509.Authenticator.t, [> `Msg of string ]) result
