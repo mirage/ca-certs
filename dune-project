@@ -1,4 +1,4 @@
-(lang dune 1.11)
+(lang dune 2.0)
 (name ca-certs)
 
 (generate_opam_files true)
@@ -10,7 +10,12 @@
 
 (package
  (name ca-certs)
- (depends)
+ (depends
+  bos fpath rresult ptime mirage-crypto
+  (x509 (>= 0.11.0))
+  (ocaml (>= 4.07.0))
+  (lwt :with-test)
+  (tls :with-test))
  (synopsis "Detect root CA certificates from the operating system")
  (description
    "\> TLS requires a set of root anchors (Certificate Authorities) to
