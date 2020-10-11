@@ -14,8 +14,7 @@
   bos fpath rresult ptime mirage-crypto
   (x509 (>= 0.11.0))
   (ocaml (>= 4.07.0))
-  (lwt :with-test)
-  (tls :with-test))
+  (alcotest :with-test))
  (synopsis "Detect root CA certificates from the operating system")
  (description
    "\> TLS requires a set of root anchors (Certificate Authorities) to
