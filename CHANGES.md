@@ -1,3 +1,7 @@
+# v0.1.2 (2020-10-12)
+
+* Revise API, avoid temporary file creation on macos
+
 # v0.1.1 (2020-10-11)
 
 * Revise test suite to not connect to the network (to please opam's sandbox),
