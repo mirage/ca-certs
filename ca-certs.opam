@@ -23,6 +23,7 @@ depends: [
   "ocaml" {>= "4.07.0"}
   "alcotest" {with-test}
 ]
+dev-repo: "git+https://github.com/mirage/ca-certs.git"
 build: [
   ["dune" "subst"] {pinned}
   [
@@ -33,11 +34,10 @@ build: [
     "-j"
     jobs
     "@install"
-    "@runtest" {with-test}
+    "@runtest" {with-test & os != "macos"} # the opam sandbox on macos leads to test failures (ocaml/opam#4389)
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/mirage/ca-certs.git"
 tags: ["org:mirage"]
 depexts: [
   ["ca_root_nss"] {os = "freebsd"}

@@ -8,7 +8,7 @@ let issue =
 let detect_one path =
   let path' = Fpath.v path in
   match Bos.OS.Path.exists path' with
-  | Ok true -> Ok path'
+  | Ok true -> Bos.OS.File.read path'
   | _ ->
       Error
         (`Msg
@@ -23,7 +23,7 @@ let detect_list paths =
             ( "ca-certs: no trust anchor file found, looked into "
             ^ String.concat ", " paths ^ ".\n" ^ issue ))
     | path :: paths -> (
-        match detect_one path with Ok path -> Ok path | Error _ -> one paths )
+        match detect_one path with Ok data -> Ok data | Error _ -> one paths )
   in
   one paths
 
@@ -46,7 +46,7 @@ let freebsd_location = "/usr/local/share/certs/ca-root-nss.crt"
 let macos_keychain_location =
   "/System/Library/Keychains/SystemRootCertificates.keychain"
 
-let ta_file_raw () =
+let trust_anchors () =
   let open Rresult.R.Infix in
   if Sys.win32 then
     Error (`Msg "ca-certs: windows is not supported at the moment")
@@ -62,19 +62,12 @@ let ta_file_raw () =
             v "security" % "find-certificate" % "-a" % "-p"
             % macos_keychain_location)
         in
-        let tmpfile = Fpath.v (Filename.temp_file "cacert" "pem") in
-        Bos.OS.Cmd.(run_out cmd |> out_file tmpfile |> success) >>| fun () ->
-        tmpfile
+        Bos.OS.Cmd.(run_out cmd |> out_string |> success)
     | s -> Error (`Msg ("ca-certs: unknown system " ^ s ^ ".\n" ^ issue))
 
-let trust_anchor_filename () =
+let authenticator ?crls ?hash_whitelist () =
   let open Rresult.R.Infix in
-  ta_file_raw () >>| Fpath.to_string
-
-let trust_anchor ?crls ?hash_whitelist () =
-  let open Rresult.R.Infix in
-  ta_file_raw () >>= fun file ->
-  Bos.OS.File.read file >>= fun data ->
-  X509.Certificate.decode_pem_multiple (Cstruct.of_string data) >>| fun cas ->
+  trust_anchors () >>= fun data ->
   let time () = Some (Ptime_clock.now ()) in
+  X509.Certificate.decode_pem_multiple (Cstruct.of_string data) >>| fun cas ->
   X509.Authenticator.chain_of_trust ?crls ?hash_whitelist ~time cas
