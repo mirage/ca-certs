@@ -43,8 +43,7 @@ let openbsd_location = "/etc/ssl/cert.pem"
 
 let freebsd_location = "/usr/local/share/certs/ca-root-nss.crt"
 
-let macos_keychain_location =
-  "/System/Library/Keychains/SystemRootCertificates.keychain"
+let macos_location = "/etc/ssl/cert.pem"
 
 let ta_file_raw () =
   let open Rresult.R.Infix in
@@ -56,15 +55,7 @@ let ta_file_raw () =
     | "FreeBSD" -> detect_one freebsd_location
     | "OpenBSD" -> detect_one openbsd_location
     | "Linux" -> detect_list linux_locations
-    | "Darwin" ->
-        let cmd =
-          Bos.Cmd.(
-            v "security" % "find-certificate" % "-a" % "-p"
-            % macos_keychain_location)
-        in
-        let tmpfile = Fpath.v (Filename.temp_file "cacert" "pem") in
-        Bos.OS.Cmd.(run_out cmd |> out_file tmpfile |> success) >>| fun () ->
-        tmpfile
+    | "Darwin" -> detect_one macos_location
     | s -> Error (`Msg ("ca-certs: unknown system " ^ s ^ ".\n" ^ issue))
 
 let trust_anchor_filename () =
