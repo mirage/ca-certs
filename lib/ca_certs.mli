@@ -1,7 +1,8 @@
-val trust_anchor_filename : unit -> (string, [> `Msg of string ]) result
-(** Attempts to discover the trust anchor file on this host system. *)
+val trust_anchors : unit -> (string, [> `Msg of string ]) result
+(** [trust_anchors ()] returns the trust anchors of the host system, if
+    found. *)
 
-val trust_anchor :
+val authenticator :
   ?crls:X509.CRL.t list ->
   ?hash_whitelist:Mirage_crypto.Hash.hash list ->
   unit ->

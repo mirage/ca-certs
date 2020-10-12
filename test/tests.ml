@@ -957,8 +957,7 @@ let tests tas =
 
 let ta () =
   let open Rresult.R.Infix in
-  Ca_certs.trust_anchor_filename () >>= fun file ->
-  Bos.OS.File.read (Fpath.v file) >>= fun data ->
+  Ca_certs.trust_anchors () >>= fun data ->
   X509.Certificate.decode_pem_multiple (Cstruct.of_string data)
 
 let () =
