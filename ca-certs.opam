@@ -7,7 +7,9 @@ authenticate servers. This library exposes this list so that it can be
 registered with ocaml-tls.
 """
 maintainer: ["Etienne Millon <me@emillon.org>"]
-authors: ["Etienne Millon <me@emillon.org>"]
+authors: [
+  "Etienne Millon <me@emillon.org>, Hannes Mehnert <hannes@mehnert.org>"
+]
 license: "ISC"
 homepage: "https://github.com/mirage/ca-certs"
 doc: "https://mirage.github.io/ca-certs/doc"

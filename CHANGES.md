@@ -1,3 +1,8 @@
+# v0.1.3 (2020-11-17)
+
+* Allow some certificates to fail decoding (#11, reported by @mattpallissard
+  in mirleft/ocaml-x509#137)
+
 # v0.1.2 (2020-10-12)
 
 * Revise API, avoid temporary file creation on macos

@@ -6,7 +6,7 @@
 (documentation "https://mirage.github.io/ca-certs/doc")
 (license ISC)
 (maintainers "Etienne Millon <me@emillon.org>")
-(authors "Etienne Millon <me@emillon.org>")
+(authors "Etienne Millon <me@emillon.org>, Hannes Mehnert <hannes@mehnert.org>")
 
 (package
  (name ca-certs)
