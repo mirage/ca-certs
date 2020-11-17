@@ -1,3 +1,7 @@
+let src = Logs.Src.create "ca-certs" ~doc:"CA certificates"
+
+module Log = (val Logs.src_log src : Logs.LOG)
+
 let issue =
   {|Please report an issue at https://github.com/mirage/ca-certs, including:
 - the output of uname -s
@@ -69,5 +73,24 @@ let authenticator ?crls ?hash_whitelist () =
   let open Rresult.R.Infix in
   trust_anchors () >>= fun data ->
   let time () = Some (Ptime_clock.now ()) in
-  X509.Certificate.decode_pem_multiple (Cstruct.of_string data) >>| fun cas ->
-  X509.Authenticator.chain_of_trust ?crls ?hash_whitelist ~time cas
+  (* we cannot use decode_pem_multiple since this fails on the first
+     undecodable certificate - while we'd like to stay operational, and ignore
+     some certificates *)
+  let sep = "-----END CERTIFICATE-----" in
+  let certs = Astring.String.cuts ~sep ~empty:false data in
+  let cas =
+    List.fold_left
+      (fun acc data ->
+        let data = data ^ sep in
+        match X509.Certificate.decode_pem (Cstruct.of_string data) with
+        | Ok ca -> ca :: acc
+        | Error (`Msg msg) ->
+            Log.warn (fun m -> m "Failed to decode a trust anchor %s." msg);
+            Log.debug (fun m -> m "Full certificate:@.%s" data);
+            acc)
+      [] certs
+  in
+  let cas = List.rev cas in
+  match cas with
+  | [] -> Error (`Msg ("ca-certs: empty trust anchors.\n" ^ issue))
+  | _ -> Ok (X509.Authenticator.chain_of_trust ?crls ?hash_whitelist ~time cas)
