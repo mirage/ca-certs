@@ -957,8 +957,22 @@ let tests tas =
 
 let ta () =
   let open Rresult.R.Infix in
-  Ca_certs.trust_anchors () >>= fun data ->
-  X509.Certificate.decode_pem_multiple (Cstruct.of_string data)
+  Ca_certs.trust_anchors () >>| fun data ->
+  (* we cannot use decode_pem_multiple since this fails on the first
+     undecodable certificate - while we'd like to stay operational, and ignore
+     some certificates *)
+  let sep = "-----END CERTIFICATE-----" in
+  let certs = Astring.String.cuts ~sep ~empty:false data in
+  let cas =
+    List.fold_left
+      (fun acc data ->
+        let data = data ^ sep in
+        match X509.Certificate.decode_pem (Cstruct.of_string data) with
+        | Ok ca -> ca :: acc
+        | Error _ -> acc)
+      [] certs
+  in
+  List.rev cas
 
 let () =
   let tas = Rresult.R.get_ok (ta ()) in
