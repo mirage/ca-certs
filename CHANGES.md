@@ -1,3 +1,7 @@
+# v0.2.0 (2021-03-05)
+
+* Add Windows support (#14, @emillon)
+
 # v0.1.3 (2020-11-17)
 
 * Allow some certificates to fail decoding (#11, reported by @mattpallissard
