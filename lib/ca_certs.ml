@@ -50,10 +50,36 @@ let freebsd_location = "/usr/local/share/certs/ca-root-nss.crt"
 let macos_keychain_location =
   "/System/Library/Keychains/SystemRootCertificates.keychain"
 
+external iter_on_anchors : (string -> unit) -> unit = "ca_certs_iter_on_anchors"
+
+let get_anchors () =
+  let der_list = ref [] in
+  match
+    iter_on_anchors (fun der_cert ->
+        der_list := Cstruct.of_string der_cert :: !der_list)
+  with
+  | () -> Ok !der_list
+  | exception Failure msg -> Rresult.R.error_msg msg
+
+let rec map_m f l =
+  match l with
+  | [] -> Ok []
+  | x :: xs ->
+      let open Rresult.R in
+      f x >>= fun y ->
+      map_m f xs >>| fun ys -> y :: ys
+
+(** Load certificates from Windows' ["ROOT"] system certificate store.
+    The C API returns a list of DER-encoded certificates. These are decoded and
+    reencoded as a single PEM certificate. *)
+let windows_trust_anchors () =
+  let open Rresult.R in
+  get_anchors () >>= map_m X509.Certificate.decode_der >>| fun cert_list ->
+  X509.Certificate.encode_pem_multiple cert_list |> Cstruct.to_string
+
 let trust_anchors () =
   let open Rresult.R.Infix in
-  if Sys.win32 then
-    Error (`Msg "ca-certs: windows is not supported at the moment")
+  if Sys.win32 then windows_trust_anchors ()
   else
     let cmd = Bos.Cmd.(v "uname" % "-s") in
     Bos.OS.Cmd.(run_out cmd |> out_string |> success) >>= function
