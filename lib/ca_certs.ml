@@ -81,19 +81,25 @@ let trust_anchors () =
   let open Rresult.R.Infix in
   if Sys.win32 then windows_trust_anchors ()
   else
-    let cmd = Bos.Cmd.(v "uname" % "-s") in
-    Bos.OS.Cmd.(run_out cmd |> out_string |> success) >>= function
-    | "FreeBSD" -> detect_one freebsd_location
-    | "OpenBSD" -> detect_one openbsd_location
-    | "Linux" -> detect_list linux_locations
-    | "Darwin" ->
-        let cmd =
-          Bos.Cmd.(
-            v "security" % "find-certificate" % "-a" % "-p"
-            % macos_keychain_location)
-        in
-        Bos.OS.Cmd.(run_out cmd |> out_string |> success)
-    | s -> Error (`Msg ("ca-certs: unknown system " ^ s ^ ".\n" ^ issue))
+    (* NixOS is special and sets "NIX_SSL_CERT_FILE" as location during builds *)
+    match Sys.getenv_opt "NIX_SSL_CERT_FILE" with
+    | Some x ->
+        Log.info (fun m -> m "using %s (from NIX_SSL_CERT_FILE)" x);
+        detect_one x
+    | None -> (
+        let cmd = Bos.Cmd.(v "uname" % "-s") in
+        Bos.OS.Cmd.(run_out cmd |> out_string |> success) >>= function
+        | "FreeBSD" -> detect_one freebsd_location
+        | "OpenBSD" -> detect_one openbsd_location
+        | "Linux" -> detect_list linux_locations
+        | "Darwin" ->
+            let cmd =
+              Bos.Cmd.(
+                v "security" % "find-certificate" % "-a" % "-p"
+                % macos_keychain_location)
+            in
+            Bos.OS.Cmd.(run_out cmd |> out_string |> success)
+        | s -> Error (`Msg ("ca-certs: unknown system " ^ s ^ ".\n" ^ issue)))
 
 let authenticator ?crls ?allowed_hashes () =
   let open Rresult.R.Infix in
