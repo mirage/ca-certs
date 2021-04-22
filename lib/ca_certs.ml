@@ -16,18 +16,18 @@ let detect_one path =
   | _ ->
       Error
         (`Msg
-          ( "ca-certs: no trust anchor file found, looked into " ^ path ^ ".\n"
-          ^ issue ))
+          ("ca-certs: no trust anchor file found, looked into " ^ path ^ ".\n"
+         ^ issue))
 
 let detect_list paths =
   let rec one = function
     | [] ->
         Error
           (`Msg
-            ( "ca-certs: no trust anchor file found, looked into "
-            ^ String.concat ", " paths ^ ".\n" ^ issue ))
+            ("ca-certs: no trust anchor file found, looked into "
+           ^ String.concat ", " paths ^ ".\n" ^ issue))
     | path :: paths -> (
-        match detect_one path with Ok data -> Ok data | Error _ -> one paths )
+        match detect_one path with Ok data -> Ok data | Error _ -> one paths)
   in
   one paths
 
