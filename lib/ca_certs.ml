@@ -95,7 +95,7 @@ let trust_anchors () =
         Bos.OS.Cmd.(run_out cmd |> out_string |> success)
     | s -> Error (`Msg ("ca-certs: unknown system " ^ s ^ ".\n" ^ issue))
 
-let authenticator ?crls ?hash_whitelist () =
+let authenticator ?crls ?allowed_hashes () =
   let open Rresult.R.Infix in
   trust_anchors () >>= fun data ->
   let time () = Some (Ptime_clock.now ()) in
@@ -119,4 +119,4 @@ let authenticator ?crls ?hash_whitelist () =
   let cas = List.rev cas in
   match cas with
   | [] -> Error (`Msg ("ca-certs: empty trust anchors.\n" ^ issue))
-  | _ -> Ok (X509.Authenticator.chain_of_trust ?crls ?hash_whitelist ~time cas)
+  | _ -> Ok (X509.Authenticator.chain_of_trust ?crls ?allowed_hashes ~time cas)

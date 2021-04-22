@@ -12,8 +12,8 @@
  (name ca-certs)
  (depends
   astring bos fpath rresult ptime logs mirage-crypto
-  (x509 (>= 0.11.0))
-  (ocaml (>= 4.07.0))
+  (x509 (>= 0.13.0))
+  (ocaml (>= 4.08.0))
   (alcotest :with-test))
  (synopsis "Detect root CA certificates from the operating system")
  (description
