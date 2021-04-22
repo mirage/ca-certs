@@ -1,3 +1,9 @@
+# v0.2.1 (2021-04-22)
+
+* Update to X.509 0.13.0 API (#18, @hannesm)
+* Respect NIX_SSL_CERT_FILE environment variable to support NixOS builds
+  (reported by @sternenseemann in #16, fix in #17 by @hannesm)
+
 # v0.2.0 (2021-03-05)
 
 * Add Windows support (#14, @emillon)
