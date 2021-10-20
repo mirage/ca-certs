@@ -30,7 +30,7 @@ let ok =
     let pp ppf = function
       | None -> Fmt.string ppf "none"
       | Some (chain, _) ->
-          Fmt.(list ~sep:(unit ", ") X509.Certificate.pp) ppf chain
+          Fmt.(list ~sep:(any ", ") X509.Certificate.pp) ppf chain
 
     let equal a b =
       match (a, b) with
