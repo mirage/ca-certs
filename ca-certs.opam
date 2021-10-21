@@ -19,7 +19,6 @@ depends: [
   "astring"
   "bos"
   "fpath"
-  "rresult"
   "ptime"
   "logs"
   "mirage-crypto"
