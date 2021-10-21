@@ -108,18 +108,22 @@ let authenticator ?crls ?allowed_hashes () =
   (* we cannot use decode_pem_multiple since this fails on the first
      undecodable certificate - while we'd like to stay operational, and ignore
      some certificates *)
-  let sep = "-----END CERTIFICATE-----" in
+  let d = "-----" in
+  let sep = d ^ "END CERTIFICATE" ^ d in
   let certs = Astring.String.cuts ~sep ~empty:false data in
   let cas =
+    let affix = d ^ "BEGIN CERTIFICATE" ^ d in
     List.fold_left
       (fun acc data ->
-        let data = data ^ sep in
-        match X509.Certificate.decode_pem (Cstruct.of_string data) with
-        | Ok ca -> ca :: acc
-        | Error (`Msg msg) ->
-            Log.warn (fun m -> m "Failed to decode a trust anchor %s." msg);
-            Log.debug (fun m -> m "Full certificate:@.%s" data);
-            acc)
+        if not (Astring.String.is_infix ~affix data) then acc
+        else
+          let data = data ^ sep in
+          match X509.Certificate.decode_pem (Cstruct.of_string data) with
+          | Ok ca -> ca :: acc
+          | Error (`Msg msg) ->
+              Log.warn (fun m -> m "Failed to decode a trust anchor %s." msg);
+              Log.debug (fun m -> m "Full certificate:@.%s" data);
+              acc)
       [] certs
   in
   let cas = List.rev cas in
