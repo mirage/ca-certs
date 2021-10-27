@@ -59,26 +59,27 @@ let get_anchors () =
         der_list := Cstruct.of_string der_cert :: !der_list)
   with
   | () -> Ok !der_list
-  | exception Failure msg -> Rresult.R.error_msg msg
+  | exception Failure msg -> Error (`Msg msg)
+
+let ( let* ) = Result.bind
 
 let rec map_m f l =
   match l with
   | [] -> Ok []
   | x :: xs ->
-      let open Rresult.R in
-      f x >>= fun y ->
-      map_m f xs >>| fun ys -> y :: ys
+      let* y = f x in
+      let* ys = map_m f xs in
+      Ok (y :: ys)
 
 (** Load certificates from Windows' ["ROOT"] system certificate store.
     The C API returns a list of DER-encoded certificates. These are decoded and
     reencoded as a single PEM certificate. *)
 let windows_trust_anchors () =
-  let open Rresult.R in
-  get_anchors () >>= map_m X509.Certificate.decode_der >>| fun cert_list ->
-  X509.Certificate.encode_pem_multiple cert_list |> Cstruct.to_string
+  let* anchors = get_anchors () in
+  let* cert_list = map_m X509.Certificate.decode_der anchors in
+  Ok (X509.Certificate.encode_pem_multiple cert_list |> Cstruct.to_string)
 
 let trust_anchors () =
-  let open Rresult.R.Infix in
   if Sys.win32 then windows_trust_anchors ()
   else
     (* NixOS is special and sets "NIX_SSL_CERT_FILE" as location during builds *)
@@ -88,7 +89,8 @@ let trust_anchors () =
         detect_one x
     | None -> (
         let cmd = Bos.Cmd.(v "uname" % "-s") in
-        Bos.OS.Cmd.(run_out cmd |> out_string |> success) >>= function
+        let* os = Bos.OS.Cmd.(run_out cmd |> out_string |> success) in
+        match os with
         | "FreeBSD" -> detect_one freebsd_location
         | "OpenBSD" -> detect_one openbsd_location
         | "Linux" -> detect_list linux_locations
@@ -102,24 +104,27 @@ let trust_anchors () =
         | s -> Error (`Msg ("ca-certs: unknown system " ^ s ^ ".\n" ^ issue)))
 
 let authenticator ?crls ?allowed_hashes () =
-  let open Rresult.R.Infix in
-  trust_anchors () >>= fun data ->
+  let* data = trust_anchors () in
   let time () = Some (Ptime_clock.now ()) in
   (* we cannot use decode_pem_multiple since this fails on the first
      undecodable certificate - while we'd like to stay operational, and ignore
      some certificates *)
-  let sep = "-----END CERTIFICATE-----" in
+  let d = "-----" in
+  let sep = d ^ "END CERTIFICATE" ^ d in
   let certs = Astring.String.cuts ~sep ~empty:false data in
   let cas =
+    let affix = d ^ "BEGIN CERTIFICATE" ^ d in
     List.fold_left
       (fun acc data ->
-        let data = data ^ sep in
-        match X509.Certificate.decode_pem (Cstruct.of_string data) with
-        | Ok ca -> ca :: acc
-        | Error (`Msg msg) ->
-            Log.warn (fun m -> m "Failed to decode a trust anchor %s." msg);
-            Log.debug (fun m -> m "Full certificate:@.%s" data);
-            acc)
+        if not (Astring.String.is_infix ~affix data) then acc
+        else
+          let data = data ^ sep in
+          match X509.Certificate.decode_pem (Cstruct.of_string data) with
+          | Ok ca -> ca :: acc
+          | Error (`Msg msg) ->
+              Log.warn (fun m -> m "Failed to decode a trust anchor %s." msg);
+              Log.debug (fun m -> m "Full certificate:@.%s" data);
+              acc)
       [] certs
   in
   let cas = List.rev cas in

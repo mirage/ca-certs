@@ -940,7 +940,7 @@ let tests tas =
     (fun (name, data) ->
       let host = Domain_name.(of_string_exn name |> host_exn)
       and chain =
-        Rresult.R.get_ok
+        Result.get_ok
           (X509.Certificate.decode_pem_multiple (Cstruct.of_string data))
       in
       (name, `Quick, test_one tas (Ok (Some (chain, List.hd chain))) host chain))
@@ -949,32 +949,31 @@ let tests tas =
       (fun (name, result, data, time) ->
         let host = Domain_name.(of_string_exn name |> host_exn)
         and chain =
-          Rresult.R.get_ok
+          Result.get_ok
             (X509.Certificate.decode_pem_multiple (Cstruct.of_string data))
         in
         (name, `Quick, test_one ?time tas (Error (result host chain)) host chain))
       err_tests
 
 let ta () =
-  let open Rresult.R.Infix in
-  Ca_certs.trust_anchors () >>| fun data ->
-  (* we cannot use decode_pem_multiple since this fails on the first
-     undecodable certificate - while we'd like to stay operational, and ignore
-     some certificates *)
-  let sep = "-----END CERTIFICATE-----" in
-  let certs = Astring.String.cuts ~sep ~empty:false data in
-  let cas =
-    List.fold_left
-      (fun acc data ->
-        let data = data ^ sep in
-        match X509.Certificate.decode_pem (Cstruct.of_string data) with
-        | Ok ca -> ca :: acc
-        | Error _ -> acc)
-      [] certs
-  in
-  List.rev cas
+  Result.bind (Ca_certs.trust_anchors ()) (fun data ->
+      (* we cannot use decode_pem_multiple since this fails on the first
+         undecodable certificate - while we'd like to stay operational, and
+         ignore some certificates *)
+      let sep = "-----END CERTIFICATE-----" in
+      let certs = Astring.String.cuts ~sep ~empty:false data in
+      let cas =
+        List.fold_left
+          (fun acc data ->
+            let data = data ^ sep in
+            match X509.Certificate.decode_pem (Cstruct.of_string data) with
+            | Ok ca -> ca :: acc
+            | Error _ -> acc)
+          [] certs
+      in
+      Ok (List.rev cas))
 
 let () =
-  let tas = Rresult.R.get_ok (ta ()) in
+  let tas = Result.get_ok (ta ()) in
   Alcotest.run "verification tests"
     [ ("X509 certificate validation", tests tas) ]

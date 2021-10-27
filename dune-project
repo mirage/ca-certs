@@ -11,7 +11,7 @@
 (package
  (name ca-certs)
  (depends
-  astring bos fpath rresult ptime logs mirage-crypto
+  astring bos fpath ptime logs mirage-crypto
   (x509 (>= 0.13.0))
   (ocaml (>= 4.08.0))
   (alcotest :with-test)
