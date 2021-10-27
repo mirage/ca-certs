@@ -1,3 +1,11 @@
+# v0.2.2 (2021-10-27)
+
+* Filter trailing certificate (if the data does not contain
+  "-----BEGIN CERTIFICATE-----", it won't be a certificate) (#19 @hannesm)
+* Avoid deprecated functions from fmt (#19 @hannesm)
+* Remove rresult dependency (#19 @hannesm)
+* Update GitHub actions (#19 @hannesm)
+
 # v0.2.1 (2021-04-22)
 
 * Update to X.509 0.13.0 API (#18, @hannesm)
