@@ -16,6 +16,7 @@
   (ocaml (>= 4.08.0))
   (alcotest :with-test)
   (fmt (and :with-test (>= 0.8.7))))
+ (conflicts (result (< 1.5)))
  (synopsis "Detect root CA certificates from the operating system")
  (description
    "\> TLS requires a set of root anchors (Certificate Authorities) to
