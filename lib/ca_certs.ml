@@ -83,11 +83,14 @@ let trust_anchors () =
   if Sys.win32 then windows_trust_anchors ()
   else
     (* NixOS is special and sets "NIX_SSL_CERT_FILE" as location during builds *)
-    match Sys.getenv_opt "NIX_SSL_CERT_FILE" with
-    | Some x ->
+    match Sys.getenv_opt "SSL_CERT_FILE", Sys.getenv_opt "NIX_SSL_CERT_FILE" with
+    | Some x, _ ->
+        Log.info (fun m -> m "using %s (from SSL_CERT_FILE)" x);
+        detect_one x
+    | _, Some x ->
         Log.info (fun m -> m "using %s (from NIX_SSL_CERT_FILE)" x);
         detect_one x
-    | None -> (
+    | None, None -> (
         let cmd = Bos.Cmd.(v "uname" % "-s") in
         let* os = Bos.OS.Cmd.(run_out cmd |> out_string |> success) in
         match os with
