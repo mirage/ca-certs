@@ -21,4 +21,4 @@ jobs:
       - name: Use OCaml ${{ matrix.ocaml-version }}
         uses: ocaml/setup-ocaml@v2
         with:
-          ocaml-version: ${{ matrix.ocaml-version }}
+          ocaml-compiler: ${{ matrix.ocaml-version }}
