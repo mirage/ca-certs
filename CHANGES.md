@@ -1,3 +1,9 @@
+# v0.2.3 (2022-09-02)
+
+* Respect the environment variable SSL_CERT_FILE as well (suggested in #22 by
+  @Konubinix, fixed in #23 by @hannesm, ok'ed by @sternenseemann)
+* Update tests for recent alpine releases (#24 @hannesm, likely fixes #21)
+
 # v0.2.2 (2021-10-27)
 
 * Filter trailing certificate (if the data does not contain
