@@ -18,7 +18,6 @@ let err =
     type t = X509.Validation.validation_error
 
     let pp = X509.Validation.pp_validation_error
-
     let equal a b = compare a b = 0 (* TODO relies on polymorphic equality *)
   end in
   (module M : Alcotest.TESTABLE with type t = M.t)

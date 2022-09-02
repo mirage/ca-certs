@@ -44,7 +44,6 @@ let linux_locations =
 
 (* from https://golang.org/src/crypto/x509/root_bsd.go *)
 let openbsd_location = "/etc/ssl/cert.pem"
-
 let freebsd_location = "/usr/local/share/certs/ca-root-nss.crt"
 
 let macos_keychain_location =
@@ -83,7 +82,9 @@ let trust_anchors () =
   if Sys.win32 then windows_trust_anchors ()
   else
     (* NixOS is special and sets "NIX_SSL_CERT_FILE" as location during builds *)
-    match Sys.getenv_opt "SSL_CERT_FILE", Sys.getenv_opt "NIX_SSL_CERT_FILE" with
+    match
+      (Sys.getenv_opt "SSL_CERT_FILE", Sys.getenv_opt "NIX_SSL_CERT_FILE")
+    with
     | Some x, _ ->
         Log.info (fun m -> m "using %s (from SSL_CERT_FILE)" x);
         detect_one x
