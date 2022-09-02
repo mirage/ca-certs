@@ -43,7 +43,7 @@ let ok =
 let r = Alcotest.result ok err
 
 let test_one ?time anchors result host chain () =
-  let time () = match time with None -> Some now | Some t -> Some t
+  let time () = Some (Option.value ~default:now time)
   and name = Domain_name.to_string host
   and host = Some host in
   Alcotest.check r ("test one " ^ name) result
@@ -51,96 +51,127 @@ let test_one ?time anchors result host chain () =
 
 let google =
   {|
-CONNECTED(00000003)
+CONNECTED(00000004)
 ---
 Certificate chain
- 0 s:C = US, ST = California, L = Mountain View, O = Google LLC, CN = *.google.com
-   i:C = US, O = Google Trust Services, CN = GTS CA 1O1
+ 0 s:CN = *.google.com
+   i:C = US, O = Google Trust Services LLC, CN = GTS CA 1C3
 -----BEGIN CERTIFICATE-----
-MIIJcTCCCFmgAwIBAgIRAOzqbxiPVrFyAgAAAAB8NQswDQYJKoZIhvcNAQELBQAw
-QjELMAkGA1UEBhMCVVMxHjAcBgNVBAoTFUdvb2dsZSBUcnVzdCBTZXJ2aWNlczET
-MBEGA1UEAxMKR1RTIENBIDFPMTAeFw0yMDA5MjIxNTIyMTlaFw0yMDEyMTUxNTIy
-MTlaMGYxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQH
-Ew1Nb3VudGFpbiBWaWV3MRMwEQYDVQQKEwpHb29nbGUgTExDMRUwEwYDVQQDDAwq
-Lmdvb2dsZS5jb20wWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAARomdmWq6BlO0yH
-z9Xb08PTWbhcMw4YF14cQRiDKnigLYp3bGxUCDtu5dAdccM0mqQdzK0cMnYMXqEC
-2T3Hw647o4IHBzCCBwMwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUF
-BwMBMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFEN+puKWN1FY2tdecjOJANtw/Sak
-MB8GA1UdIwQYMBaAFJjR+G4Q68+b7GCfGJAboOt9Cf0rMGgGCCsGAQUFBwEBBFww
-WjArBggrBgEFBQcwAYYfaHR0cDovL29jc3AucGtpLmdvb2cvZ3RzMW8xY29yZTAr
-BggrBgEFBQcwAoYfaHR0cDovL3BraS5nb29nL2dzcjIvR1RTMU8xLmNydDCCBMIG
-A1UdEQSCBLkwggS1ggwqLmdvb2dsZS5jb22CDSouYW5kcm9pZC5jb22CFiouYXBw
-ZW5naW5lLmdvb2dsZS5jb22CCSouYmRuLmRldoISKi5jbG91ZC5nb29nbGUuY29t
-ghgqLmNyb3dkc291cmNlLmdvb2dsZS5jb22CGCouZGF0YWNvbXB1dGUuZ29vZ2xl
-LmNvbYIGKi5nLmNvgg4qLmdjcC5ndnQyLmNvbYIRKi5nY3BjZG4uZ3Z0MS5jb22C
-CiouZ2dwaHQuY26CDiouZ2tlY25hcHBzLmNughYqLmdvb2dsZS1hbmFseXRpY3Mu
-Y29tggsqLmdvb2dsZS5jYYILKi5nb29nbGUuY2yCDiouZ29vZ2xlLmNvLmlugg4q
-Lmdvb2dsZS5jby5qcIIOKi5nb29nbGUuY28udWuCDyouZ29vZ2xlLmNvbS5hcoIP
-Ki5nb29nbGUuY29tLmF1gg8qLmdvb2dsZS5jb20uYnKCDyouZ29vZ2xlLmNvbS5j
-b4IPKi5nb29nbGUuY29tLm14gg8qLmdvb2dsZS5jb20udHKCDyouZ29vZ2xlLmNv
-bS52boILKi5nb29nbGUuZGWCCyouZ29vZ2xlLmVzggsqLmdvb2dsZS5mcoILKi5n
-b29nbGUuaHWCCyouZ29vZ2xlLml0ggsqLmdvb2dsZS5ubIILKi5nb29nbGUucGyC
-CyouZ29vZ2xlLnB0ghIqLmdvb2dsZWFkYXBpcy5jb22CDyouZ29vZ2xlYXBpcy5j
-boIRKi5nb29nbGVjbmFwcHMuY26CFCouZ29vZ2xlY29tbWVyY2UuY29tghEqLmdv
-b2dsZXZpZGVvLmNvbYIMKi5nc3RhdGljLmNugg0qLmdzdGF0aWMuY29tghIqLmdz
-dGF0aWNjbmFwcHMuY26CCiouZ3Z0MS5jb22CCiouZ3Z0Mi5jb22CFCoubWV0cmlj
-LmdzdGF0aWMuY29tggwqLnVyY2hpbi5jb22CECoudXJsLmdvb2dsZS5jb22CEyou
-d2Vhci5na2VjbmFwcHMuY26CFioueW91dHViZS1ub2Nvb2tpZS5jb22CDSoueW91
-dHViZS5jb22CFioueW91dHViZWVkdWNhdGlvbi5jb22CESoueW91dHViZWtpZHMu
-Y29tggcqLnl0LmJlggsqLnl0aW1nLmNvbYIaYW5kcm9pZC5jbGllbnRzLmdvb2ds
-ZS5jb22CC2FuZHJvaWQuY29tghtkZXZlbG9wZXIuYW5kcm9pZC5nb29nbGUuY26C
-HGRldmVsb3BlcnMuYW5kcm9pZC5nb29nbGUuY26CBGcuY2+CCGdncGh0LmNuggxn
-a2VjbmFwcHMuY26CBmdvby5nbIIUZ29vZ2xlLWFuYWx5dGljcy5jb22CCmdvb2ds
-ZS5jb22CD2dvb2dsZWNuYXBwcy5jboISZ29vZ2xlY29tbWVyY2UuY29tghhzb3Vy
-Y2UuYW5kcm9pZC5nb29nbGUuY26CCnVyY2hpbi5jb22CCnd3dy5nb28uZ2yCCHlv
-dXR1LmJlggt5b3V0dWJlLmNvbYIUeW91dHViZWVkdWNhdGlvbi5jb22CD3lvdXR1
-YmVraWRzLmNvbYIFeXQuYmUwIQYDVR0gBBowGDAIBgZngQwBAgIwDAYKKwYBBAHW
-eQIFAzAzBgNVHR8ELDAqMCigJqAkhiJodHRwOi8vY3JsLnBraS5nb29nL0dUUzFP
-MWNvcmUuY3JsMIIBBAYKKwYBBAHWeQIEAgSB9QSB8gDwAHUAB7dcG+V9aP/xsMYd
-IxXHuuZXfFeUt2ruvGE6GmnTohwAAAF0tp+GwAAABAMARjBEAiBis68209UqRM3U
-pdK8YoCfL8BrZY6+i6ORfGmo7neXTQIgSrcPvX7ZqP3uvT5yoJYFjbpZBwY9cwAV
-W4n9855SnlcAdwDnEvKwN34aYvuOyQxhhPHqezfLVh0RJlvz4PNL8kFUbgAAAXS2
-n4TVAAAEAwBIMEYCIQCRyG5B5Www1ro7CxWNLULQ96BNxtNTCko0bNCD5MejPQIh
-AMNe5UO1cbG7u6oaO7/yRUt2O1OSewKoMddtPB1OUBh+MA0GCSqGSIb3DQEBCwUA
-A4IBAQAN61JzpCZJVRZrpVJIRy6Hn65b0ZDBXTh3x6OpD3X2Y0Q6FRqaQuPUA7xg
-DUvVnUUpMGsM2ylzUrtvJhSOCb32FU3g9FwVzTif/PRA5qniYRhysR2aa+NxHg5c
-rua60gExT/oSHeGKpJUXTCTPypF4wJ1YvKOd7pRfNqlGR4Gfb6BVy/YCA3CW/bk0
-yQ0k99iL/ancn2qGBn4++Z2XWGZHgo5FTvCtFl6ZrK01T+UeqhLp8kQOvyN58WiM
-S+c/7a4M2GyzJe+niWodeKFY91N0SpBViX8cl0YmIm6CNmJdRt5AA+C/FmLgxh7F
-wBPEtuosuW+JHwshTHwwylI7tT1x
+MIIN7TCCDNWgAwIBAgIRAOiTWGjouQqZEnfVOliVUgMwDQYJKoZIhvcNAQELBQAw
+RjELMAkGA1UEBhMCVVMxIjAgBgNVBAoTGUdvb2dsZSBUcnVzdCBTZXJ2aWNlcyBM
+TEMxEzARBgNVBAMTCkdUUyBDQSAxQzMwHhcNMjIwODE1MDgxNzU1WhcNMjIxMTA3
+MDgxNzU0WjAXMRUwEwYDVQQDDAwqLmdvb2dsZS5jb20wWTATBgcqhkjOPQIBBggq
+hkjOPQMBBwNCAAR+WyRr7LUBv9hZwwfLXBL1TKYA7WPZ9M/U0M4hNC4Z/AKlY6uO
+UfM/EQb7U9EKKx97cFnNeu4NSn91myBj2I9To4ILzjCCC8owDgYDVR0PAQH/BAQD
+AgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYE
+FBGBZeOKvV1jMa3d+vhUaXt7MXyFMB8GA1UdIwQYMBaAFIp0f6+Fze6VzT2c0OJG
+FPNxNR0nMGoGCCsGAQUFBwEBBF4wXDAnBggrBgEFBQcwAYYbaHR0cDovL29jc3Au
+cGtpLmdvb2cvZ3RzMWMzMDEGCCsGAQUFBzAChiVodHRwOi8vcGtpLmdvb2cvcmVw
+by9jZXJ0cy9ndHMxYzMuZGVyMIIJfwYDVR0RBIIJdjCCCXKCDCouZ29vZ2xlLmNv
+bYIWKi5hcHBlbmdpbmUuZ29vZ2xlLmNvbYIJKi5iZG4uZGV2ghUqLm9yaWdpbi10
+ZXN0LmJkbi5kZXaCEiouY2xvdWQuZ29vZ2xlLmNvbYIYKi5jcm93ZHNvdXJjZS5n
+b29nbGUuY29tghgqLmRhdGFjb21wdXRlLmdvb2dsZS5jb22CCyouZ29vZ2xlLmNh
+ggsqLmdvb2dsZS5jbIIOKi5nb29nbGUuY28uaW6CDiouZ29vZ2xlLmNvLmpwgg4q
+Lmdvb2dsZS5jby51a4IPKi5nb29nbGUuY29tLmFygg8qLmdvb2dsZS5jb20uYXWC
+DyouZ29vZ2xlLmNvbS5icoIPKi5nb29nbGUuY29tLmNvgg8qLmdvb2dsZS5jb20u
+bXiCDyouZ29vZ2xlLmNvbS50coIPKi5nb29nbGUuY29tLnZuggsqLmdvb2dsZS5k
+ZYILKi5nb29nbGUuZXOCCyouZ29vZ2xlLmZyggsqLmdvb2dsZS5odYILKi5nb29n
+bGUuaXSCCyouZ29vZ2xlLm5sggsqLmdvb2dsZS5wbIILKi5nb29nbGUucHSCEiou
+Z29vZ2xlYWRhcGlzLmNvbYIPKi5nb29nbGVhcGlzLmNughEqLmdvb2dsZXZpZGVv
+LmNvbYIMKi5nc3RhdGljLmNughAqLmdzdGF0aWMtY24uY29tgg9nb29nbGVjbmFw
+cHMuY26CESouZ29vZ2xlY25hcHBzLmNughFnb29nbGVhcHBzLWNuLmNvbYITKi5n
+b29nbGVhcHBzLWNuLmNvbYIMZ2tlY25hcHBzLmNugg4qLmdrZWNuYXBwcy5jboIS
+Z29vZ2xlZG93bmxvYWRzLmNughQqLmdvb2dsZWRvd25sb2Fkcy5jboIQcmVjYXB0
+Y2hhLm5ldC5jboISKi5yZWNhcHRjaGEubmV0LmNughByZWNhcHRjaGEtY24ubmV0
+ghIqLnJlY2FwdGNoYS1jbi5uZXSCC3dpZGV2aW5lLmNugg0qLndpZGV2aW5lLmNu
+ghFhbXBwcm9qZWN0Lm9yZy5jboITKi5hbXBwcm9qZWN0Lm9yZy5jboIRYW1wcHJv
+amVjdC5uZXQuY26CEyouYW1wcHJvamVjdC5uZXQuY26CF2dvb2dsZS1hbmFseXRp
+Y3MtY24uY29tghkqLmdvb2dsZS1hbmFseXRpY3MtY24uY29tghdnb29nbGVhZHNl
+cnZpY2VzLWNuLmNvbYIZKi5nb29nbGVhZHNlcnZpY2VzLWNuLmNvbYIRZ29vZ2xl
+dmFkcy1jbi5jb22CEyouZ29vZ2xldmFkcy1jbi5jb22CEWdvb2dsZWFwaXMtY24u
+Y29tghMqLmdvb2dsZWFwaXMtY24uY29tghVnb29nbGVvcHRpbWl6ZS1jbi5jb22C
+FyouZ29vZ2xlb3B0aW1pemUtY24uY29tghJkb3VibGVjbGljay1jbi5uZXSCFCou
+ZG91YmxlY2xpY2stY24ubmV0ghgqLmZscy5kb3VibGVjbGljay1jbi5uZXSCFiou
+Zy5kb3VibGVjbGljay1jbi5uZXSCDmRvdWJsZWNsaWNrLmNughAqLmRvdWJsZWNs
+aWNrLmNughQqLmZscy5kb3VibGVjbGljay5jboISKi5nLmRvdWJsZWNsaWNrLmNu
+ghFkYXJ0c2VhcmNoLWNuLm5ldIITKi5kYXJ0c2VhcmNoLWNuLm5ldIIdZ29vZ2xl
+dHJhdmVsYWRzZXJ2aWNlcy1jbi5jb22CHyouZ29vZ2xldHJhdmVsYWRzZXJ2aWNl
+cy1jbi5jb22CGGdvb2dsZXRhZ3NlcnZpY2VzLWNuLmNvbYIaKi5nb29nbGV0YWdz
+ZXJ2aWNlcy1jbi5jb22CF2dvb2dsZXRhZ21hbmFnZXItY24uY29tghkqLmdvb2ds
+ZXRhZ21hbmFnZXItY24uY29tghhnb29nbGVzeW5kaWNhdGlvbi1jbi5jb22CGiou
+Z29vZ2xlc3luZGljYXRpb24tY24uY29tgiQqLnNhZmVmcmFtZS5nb29nbGVzeW5k
+aWNhdGlvbi1jbi5jb22CFmFwcC1tZWFzdXJlbWVudC1jbi5jb22CGCouYXBwLW1l
+YXN1cmVtZW50LWNuLmNvbYILZ3Z0MS1jbi5jb22CDSouZ3Z0MS1jbi5jb22CC2d2
+dDItY24uY29tgg0qLmd2dDItY24uY29tggsybWRuLWNuLm5ldIINKi4ybWRuLWNu
+Lm5ldIIUZ29vZ2xlZmxpZ2h0cy1jbi5uZXSCFiouZ29vZ2xlZmxpZ2h0cy1jbi5u
+ZXSCDGFkbW9iLWNuLmNvbYIOKi5hZG1vYi1jbi5jb22CDSouZ3N0YXRpYy5jb22C
+FCoubWV0cmljLmdzdGF0aWMuY29tggoqLmd2dDEuY29tghEqLmdjcGNkbi5ndnQx
+LmNvbYIKKi5ndnQyLmNvbYIOKi5nY3AuZ3Z0Mi5jb22CECoudXJsLmdvb2dsZS5j
+b22CFioueW91dHViZS1ub2Nvb2tpZS5jb22CCyoueXRpbWcuY29tggthbmRyb2lk
+LmNvbYINKi5hbmRyb2lkLmNvbYITKi5mbGFzaC5hbmRyb2lkLmNvbYIEZy5jboIG
+Ki5nLmNuggRnLmNvggYqLmcuY2+CBmdvby5nbIIKd3d3Lmdvby5nbIIUZ29vZ2xl
+LWFuYWx5dGljcy5jb22CFiouZ29vZ2xlLWFuYWx5dGljcy5jb22CCmdvb2dsZS5j
+b22CEmdvb2dsZWNvbW1lcmNlLmNvbYIUKi5nb29nbGVjb21tZXJjZS5jb22CCGdn
+cGh0LmNuggoqLmdncGh0LmNuggp1cmNoaW4uY29tggwqLnVyY2hpbi5jb22CCHlv
+dXR1LmJlggt5b3V0dWJlLmNvbYINKi55b3V0dWJlLmNvbYIUeW91dHViZWVkdWNh
+dGlvbi5jb22CFioueW91dHViZWVkdWNhdGlvbi5jb22CD3lvdXR1YmVraWRzLmNv
+bYIRKi55b3V0dWJla2lkcy5jb22CBXl0LmJlggcqLnl0LmJlghphbmRyb2lkLmNs
+aWVudHMuZ29vZ2xlLmNvbYIbZGV2ZWxvcGVyLmFuZHJvaWQuZ29vZ2xlLmNughxk
+ZXZlbG9wZXJzLmFuZHJvaWQuZ29vZ2xlLmNughhzb3VyY2UuYW5kcm9pZC5nb29n
+bGUuY24wIQYDVR0gBBowGDAIBgZngQwBAgEwDAYKKwYBBAHWeQIFAzA8BgNVHR8E
+NTAzMDGgL6AthitodHRwOi8vY3Jscy5wa2kuZ29vZy9ndHMxYzMvZlZKeGJWLUt0
+bWsuY3JsMIIBAwYKKwYBBAHWeQIEAgSB9ASB8QDvAHYAQcjKsd8iRkoQxqE6CUKH
+Xk4xixsD6+tLx2jwkGKWBvYAAAGCoMvRfgAABAMARzBFAiBPV0E8HDi+cvjenWQs
+LDIplbHN7wh5WW4JljdvTDT6VQIhAOHGQ8dvdnvoWlUsaiQCdYXCJJdBgqfjmNjE
+StIajA4iAHUAKXm+8J45OSHwVnOfY6V35b5XfZxgCvj5TV0mXCVdx4QAAAGCoMvR
+QgAABAMARjBEAiAPgjURNB68xW+4M++sKc7+gOHPDWmhhj9u9WrxM/Qg6QIgAVui
+/sPQD8WI2grIQcvoYKSgBqP+3tzI+BKC1bt74/IwDQYJKoZIhvcNAQELBQADggEB
+AKgGzIajsJI5BWB15oKyo5XBHWWY4tkT4s0XIQh1GOZVM/iu4QcDDmjpD0sAexXe
+fRXT7m+58x8WT1nf1M+U/eAtSullmLHh/OAVFAhW9xMwu5HiteEyBQrYHA0wQ92V
+Fj9zce9Ps7oOcI79YACdyMtq1mwoWoqDsLxXINJROb2tYpIY75ASaqeN81fCznYS
+sy6o5bVgPOuzZGn9V/PHDx4+10m1sGtWhcBstqteT3G5xnXekrsZlIm+vugtTnMX
+RGgpPtZqE8q47tO5m2WsfzaNJSQPlxvm0ccthevPqh/BlD+UNl1uLa2I+/HjBhgo
+tDTg697Ek5DAKVWvnQwmskU=
 -----END CERTIFICATE-----
- 1 s:C = US, O = Google Trust Services, CN = GTS CA 1O1
-   i:OU = GlobalSign Root CA - R2, O = GlobalSign, CN = GlobalSign
+ 1 s:C = US, O = Google Trust Services LLC, CN = GTS CA 1C3
+   i:C = US, O = Google Trust Services LLC, CN = GTS Root R1
 -----BEGIN CERTIFICATE-----
-MIIESjCCAzKgAwIBAgINAeO0mqGNiqmBJWlQuDANBgkqhkiG9w0BAQsFADBMMSAw
-HgYDVQQLExdHbG9iYWxTaWduIFJvb3QgQ0EgLSBSMjETMBEGA1UEChMKR2xvYmFs
-U2lnbjETMBEGA1UEAxMKR2xvYmFsU2lnbjAeFw0xNzA2MTUwMDAwNDJaFw0yMTEy
-MTUwMDAwNDJaMEIxCzAJBgNVBAYTAlVTMR4wHAYDVQQKExVHb29nbGUgVHJ1c3Qg
-U2VydmljZXMxEzARBgNVBAMTCkdUUyBDQSAxTzEwggEiMA0GCSqGSIb3DQEBAQUA
-A4IBDwAwggEKAoIBAQDQGM9F1IvN05zkQO9+tN1pIRvJzzyOTHW5DzEZhD2ePCnv
-UA0Qk28FgICfKqC9EksC4T2fWBYk/jCfC3R3VZMdS/dN4ZKCEPZRrAzDsiKUDzRr
-mBBJ5wudgzndIMYcLe/RGGFl5yODIKgjEv/SJH/UL+dEaltN11BmsK+eQmMF++Ac
-xGNhr59qM/9il71I2dN8FGfcddwuaej4bXhp0LcQBbjxMcI7JP0aM3T4I+DsaxmK
-FsbjzaTNC9uzpFlgOIg7rR25xoynUxv8vNmkq7zdPGHXkxWY7oG9j+JkRyBABk7X
-rJfoucBZEqFJJSPk7XA0LKW0Y3z5oz2D0c1tJKwHAgMBAAGjggEzMIIBLzAOBgNV
-HQ8BAf8EBAMCAYYwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMBIGA1Ud
-EwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFJjR+G4Q68+b7GCfGJAboOt9Cf0rMB8G
-A1UdIwQYMBaAFJviB1dnHB7AagbeWbSaLd/cGYYuMDUGCCsGAQUFBwEBBCkwJzAl
-BggrBgEFBQcwAYYZaHR0cDovL29jc3AucGtpLmdvb2cvZ3NyMjAyBgNVHR8EKzAp
-MCegJaAjhiFodHRwOi8vY3JsLnBraS5nb29nL2dzcjIvZ3NyMi5jcmwwPwYDVR0g
-BDgwNjA0BgZngQwBAgIwKjAoBggrBgEFBQcCARYcaHR0cHM6Ly9wa2kuZ29vZy9y
-ZXBvc2l0b3J5LzANBgkqhkiG9w0BAQsFAAOCAQEAGoA+Nnn78y6pRjd9XlQWNa7H
-TgiZ/r3RNGkmUmYHPQq6Scti9PEajvwRT2iWTHQr02fesqOqBY2ETUwgZQ+lltoN
-FvhsO9tvBCOIazpswWC9aJ9xju4tWDQH8NVU6YZZ/XteDSGU9YzJqPjY8q3MDxrz
-mqepBCf5o8mw/wJ4a2G6xzUr6Fb6T8McDO22PLRL6u3M4Tzs3A2M1j6bykJYi8wW
-IRdAvKLWZu/axBVbzYmqmwkm5zLSDW5nIAJbELCQCZwMH56t2Dvqofxs6BBcCFIZ
-USpxu6x6td0V7SvJCCosirSmIatj/9dSSVDQibet8q/7UK4v4ZUN80atnZz1yg==
+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
+AoYkaHR0cDovL3BraS5nb29nL3JlcG8vY2VydHMvZ3RzcjEuZGVyMDQGA1UdHwQt
+MCswKaAnoCWGI2h0dHA6Ly9jcmwucGtpLmdvb2cvZ3RzcjEvZ3RzcjEuY3JsMFcG
+A1UdIARQME4wOAYKKwYBBAHWeQIFAzAqMCgGCCsGAQUFBwIBFhxodHRwczovL3Br
+aS5nb29nL3JlcG9zaXRvcnkvMAgGBmeBDAECATAIBgZngQwBAgIwDQYJKoZIhvcN
+AQELBQADggIBAIl9rCBcDDy+mqhXlRu0rvqrpXJxtDaV/d9AEQNMwkYUuxQkq/BQ
+cSLbrcRuf8/xam/IgxvYzolfh2yHuKkMo5uhYpSTld9brmYZCwKWnvy15xBpPnrL
+RklfRuFBsdeYTWU0AIAaP0+fbH9JAIFTQaSSIYKCGvGjRFsqUBITTcFTNvNCCK9U
++o53UxtkOCcXCb1YyRt8OS1b887U7ZfbFAO/CVMkH8IMBHmYJvJh8VNS/UKMG2Yr
+PxWhu//2m+OBmgEGcYk1KCTd4b3rGS3hSMs9WYNRtHTGnXzGsYZbr8w0xNPM1IER
+lQCh9BIiAfq0g3GvjLeMcySsN1PCAJA/Ef5c7TaUEDu9Ka7ixzpiO2xj2YC/WXGs
+Yye5TBeg2vZzFb8q3o/zpWwygTMD0IZRcZk0upONXbVRWPeyk+gB9lm+cZv9TSjO
+z23HFtz30dZGm6fKa+l3D/2gthsjgx0QGtkJAITgRNOidSOzNIb2ILCkXhAd4FJG
+AJ2xDx8hcFH1mt0G/FX0Kw4zd8NLQsLxdxP8c4CU6x+7Nz/OAipmsHMdMqUybDKw
+juDEI/9bfU1lcKwrmz3O2+BtjjKAvpafkmO8l7tdufThcV4q5O8DIrGKZTqPwJNl
+1IXNDw9bg1kWRxYtnCQ6yICmJhSFm/Y3m6xv+cXDBlHz4n/FsRC6UfTd
 -----END CERTIFICATE-----
 ---
 Server certificate
-subject=C = US, ST = California, L = Mountain View, O = Google LLC, CN = *.google.com
+subject=CN = *.google.com
 
-issuer=C = US, O = Google Trust Services, CN = GTS CA 1O1
+issuer=C = US, O = Google Trust Services LLC, CN = GTS CA 1C3
 
 ---
 No client certificate CA names sent
@@ -148,7 +179,7 @@ Peer signing digest: SHA256
 Peer signature type: ECDSA
 Server Temp Key: X25519, 253 bits
 ---
-SSL handshake has read 3832 bytes and written 390 bytes
+SSL handshake has read 6700 bytes and written 388 bytes
 Verification: OK
 ---
 New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
@@ -280,8 +311,8 @@ SSL-Session:
 
 let ok_tests =
   [
-    ("google.com", google);
-    ("extended-validation.badssl.com", extended_validation_badssl);
+    ("google.com", google, Ptime.of_date_time ((2022, 09, 02), ((14, 00, 00), 00)));
+    ("extended-validation.badssl.com", extended_validation_badssl, None);
   ]
 
 let self_signed_badssl =
@@ -931,18 +962,18 @@ let err_tests =
     ( "wrong.host.google.com",
       (fun h c -> `LeafInvalidName (List.hd c, Some h)),
       google,
-      None );
+      Ptime.of_date_time ((2022, 09, 02), ((14, 00, 00), 00)) );
   ]
 
 let tests tas =
   List.map
-    (fun (name, data) ->
+    (fun (name, data, time) ->
       let host = Domain_name.(of_string_exn name |> host_exn)
       and chain =
         Result.get_ok
           (X509.Certificate.decode_pem_multiple (Cstruct.of_string data))
       in
-      (name, `Quick, test_one tas (Ok (Some (chain, List.hd chain))) host chain))
+      (name, `Quick, test_one ?time tas (Ok (Some (chain, List.hd chain))) host chain))
     ok_tests
   @ List.map
       (fun (name, result, data, time) ->
