@@ -311,7 +311,9 @@ SSL-Session:
 
 let ok_tests =
   [
-    ("google.com", google, Ptime.of_date_time ((2022, 09, 02), ((14, 00, 00), 00)));
+    ( "google.com",
+      google,
+      Ptime.of_date_time ((2022, 09, 02), ((14, 00, 00), 00)) );
     ("extended-validation.badssl.com", extended_validation_badssl, None);
   ]
 
@@ -973,7 +975,9 @@ let tests tas =
         Result.get_ok
           (X509.Certificate.decode_pem_multiple (Cstruct.of_string data))
       in
-      (name, `Quick, test_one ?time tas (Ok (Some (chain, List.hd chain))) host chain))
+      ( name,
+        `Quick,
+        test_one ?time tas (Ok (Some (chain, List.hd chain))) host chain ))
     ok_tests
   @ List.map
       (fun (name, result, data, time) ->
