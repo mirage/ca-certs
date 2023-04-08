@@ -16,6 +16,7 @@ doc: "https://mirage.github.io/ca-certs/doc"
 bug-reports: "https://github.com/mirage/ca-certs/issues"
 depends: [
   "dune" {>= "2.0"}
+  "astring"
   "bos"
   "fpath"
   "ptime"
