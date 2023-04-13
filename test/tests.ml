@@ -994,16 +994,30 @@ let ta () =
       (* we cannot use decode_pem_multiple since this fails on the first
          undecodable certificate - while we'd like to stay operational, and
          ignore some certificates *)
-      let sep = "-----END CERTIFICATE-----" in
-      let certs = Astring.String.cuts ~sep ~empty:false data in
-      let cas =
+      let d = "-----" in
+      let new_cert = d ^ "BEGIN CERTIFICATE" ^ d
+      and end_of_cert = d ^ "END CERTIFICATE" ^ d in
+      let len_new = String.length new_cert
+      and len_end = String.length end_of_cert in
+      let lines = String.split_on_char '\n' data in
+      let _, cas =
         List.fold_left
-          (fun acc data ->
-            let data = data ^ sep in
-            match X509.Certificate.decode_pem (Cstruct.of_string data) with
-            | Ok ca -> ca :: acc
-            | Error _ -> acc)
-          [] certs
+          (fun (acc, cas) line ->
+             match acc with
+             | None
+               when String.length line >= len_new
+                 && String.(equal (sub line 0 len_new) new_cert) ->
+               (Some [ line ], cas)
+             | None -> (None, cas)
+             | Some lines
+               when String.length line >= len_end
+                 && String.(equal (sub line 0 len_end) end_of_cert) -> (
+                 let data = String.concat "\n" (List.rev (line :: lines)) in
+                 match X509.Certificate.decode_pem (Cstruct.of_string data) with
+                 | Ok ca -> (None, ca :: cas)
+                 | Error (`Msg _) -> (None, cas))
+             | Some lines -> (Some (line :: lines), cas))
+          (None, []) lines
       in
       Ok (List.rev cas))
 
