@@ -1003,20 +1003,20 @@ let ta () =
       let _, cas =
         List.fold_left
           (fun (acc, cas) line ->
-             match acc with
-             | None
-               when String.length line >= len_new
-                 && String.(equal (sub line 0 len_new) new_cert) ->
-               (Some [ line ], cas)
-             | None -> (None, cas)
-             | Some lines
-               when String.length line >= len_end
-                 && String.(equal (sub line 0 len_end) end_of_cert) -> (
-                 let data = String.concat "\n" (List.rev (line :: lines)) in
-                 match X509.Certificate.decode_pem (Cstruct.of_string data) with
-                 | Ok ca -> (None, ca :: cas)
-                 | Error (`Msg _) -> (None, cas))
-             | Some lines -> (Some (line :: lines), cas))
+            match acc with
+            | None
+              when String.length line >= len_new
+                   && String.(equal (sub line 0 len_new) new_cert) ->
+                (Some [ line ], cas)
+            | None -> (None, cas)
+            | Some lines
+              when String.length line >= len_end
+                   && String.(equal (sub line 0 len_end) end_of_cert) -> (
+                let data = String.concat "\n" (List.rev (line :: lines)) in
+                match X509.Certificate.decode_pem (Cstruct.of_string data) with
+                | Ok ca -> (None, ca :: cas)
+                | Error (`Msg _) -> (None, cas))
+            | Some lines -> (Some (line :: lines), cas))
           (None, []) lines
       in
       Ok (List.rev cas))
