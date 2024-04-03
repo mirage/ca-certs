@@ -55,7 +55,7 @@ let get_anchors () =
   let der_list = ref [] in
   match
     iter_on_anchors (fun der_cert ->
-        der_list := Cstruct.of_string der_cert :: !der_list)
+        der_list := der_cert :: !der_list)
   with
   | () -> Ok !der_list
   | exception Failure msg -> Error (`Msg msg)
@@ -76,7 +76,7 @@ let rec map_m f l =
 let windows_trust_anchors () =
   let* anchors = get_anchors () in
   let* cert_list = map_m X509.Certificate.decode_der anchors in
-  Ok (X509.Certificate.encode_pem_multiple cert_list |> Cstruct.to_string)
+  Ok (X509.Certificate.encode_pem_multiple cert_list)
 
 let trust_anchors () =
   if Sys.win32 then windows_trust_anchors ()
@@ -134,7 +134,7 @@ let authenticator ?crls ?allowed_hashes () =
           when String.length line >= len_end
                && String.(equal (sub line 0 len_end) end_of_cert) -> (
             let data = String.concat "\n" (List.rev (line :: lines)) in
-            match X509.Certificate.decode_pem (Cstruct.of_string data) with
+            match X509.Certificate.decode_pem data with
             | Ok ca -> (None, ca :: cas)
             | Error (`Msg msg) ->
                 Log.warn (fun m -> m "Failed to decode a trust anchor %s." msg);
