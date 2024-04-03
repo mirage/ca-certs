@@ -1,6 +1,6 @@
 val authenticator :
   ?crls:X509.CRL.t list ->
-  ?allowed_hashes:Mirage_crypto.Hash.hash list ->
+  ?allowed_hashes:Digestif.hash' list ->
   unit ->
   (X509.Authenticator.t, [> `Msg of string ]) result
 (** [authenticator ~crls ~allowed_hashes ()] detects the root CAs (trust

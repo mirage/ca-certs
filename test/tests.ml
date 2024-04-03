@@ -973,7 +973,7 @@ let tests tas =
       let host = Domain_name.(of_string_exn name |> host_exn)
       and chain =
         Result.get_ok
-          (X509.Certificate.decode_pem_multiple (Cstruct.of_string data))
+          (X509.Certificate.decode_pem_multiple data)
       in
       ( name,
         `Quick,
@@ -984,7 +984,7 @@ let tests tas =
         let host = Domain_name.(of_string_exn name |> host_exn)
         and chain =
           Result.get_ok
-            (X509.Certificate.decode_pem_multiple (Cstruct.of_string data))
+            (X509.Certificate.decode_pem_multiple data)
         in
         (name, `Quick, test_one ?time tas (Error (result host chain)) host chain))
       err_tests
@@ -1013,7 +1013,7 @@ let ta () =
               when String.length line >= len_end
                    && String.(equal (sub line 0 len_end) end_of_cert) -> (
                 let data = String.concat "\n" (List.rev (line :: lines)) in
-                match X509.Certificate.decode_pem (Cstruct.of_string data) with
+                match X509.Certificate.decode_pem data with
                 | Ok ca -> (None, ca :: cas)
                 | Error (`Msg _) -> (None, cas))
             | Some lines -> (Some (line :: lines), cas))
