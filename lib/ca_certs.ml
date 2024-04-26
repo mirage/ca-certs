@@ -46,8 +46,11 @@ let linux_locations =
 let openbsd_location = "/etc/ssl/cert.pem"
 let freebsd_location = "/usr/local/share/certs/ca-root-nss.crt"
 
-let macos_keychain_location =
-  "/System/Library/Keychains/SystemRootCertificates.keychain"
+let macos_keychain_locations =
+  [
+    "/System/Library/Keychains/SystemRootCertificates.keychain";
+    "/Library/Keychains/System.keychain";
+  ]
 
 external iter_on_anchors : (string -> unit) -> unit = "ca_certs_iter_on_anchors"
 
@@ -99,12 +102,25 @@ let trust_anchors () =
         | "OpenBSD" -> detect_one openbsd_location
         | "Linux" -> detect_list linux_locations
         | "Darwin" ->
-            let cmd =
-              Bos.Cmd.(
-                v "security" % "find-certificate" % "-a" % "-p"
-                % macos_keychain_location)
-            in
-            Bos.OS.Cmd.(run_out cmd |> out_string |> success)
+            macos_keychain_locations
+            |> List.map (fun path ->
+                   let cmd =
+                     Bos.Cmd.(
+                       v "security" % "find-certificate" % "-a" % "-p" % path)
+                   in
+                   Bos.OS.Cmd.(
+                     run_out cmd |> out_string |> success |> Result.to_option))
+            |> List.fold_left
+                 (fun acc cert ->
+                   match (cert, acc) with
+                   | Some cert, Some acc -> Some (cert ^ "\n" ^ acc)
+                   | Some cert, None -> Some cert
+                   | _ -> acc)
+                 None
+            |> Option.to_result
+                 ~none:
+                   (`Msg
+                     ("ca-certs: no trust anchor file found on macOS.\n" ^ issue))
         | s -> Error (`Msg ("ca-certs: unknown system " ^ s ^ ".\n" ^ issue)))
 
 let authenticator ?crls ?allowed_hashes () =
