@@ -107,6 +107,11 @@ let trust_anchors () =
             Bos.OS.Cmd.(run_out cmd |> out_string |> success)
         | s -> Error (`Msg ("ca-certs: unknown system " ^ s ^ ".\n" ^ issue)))
 
+let extra_trust_anchors () =
+  match Sys.getenv_opt "OCAML_EXTRA_CA_CERTS" with
+  | None -> Ok ""
+  | Some x -> detect_one x
+
 let decode_pem_multiple data =
   X509.Certificate.fold_decode_pem_multiple
     (fun acc -> function
@@ -117,9 +122,12 @@ let decode_pem_multiple data =
     [] data
 
 let authenticator ?crls ?allowed_hashes () =
-  let* data = trust_anchors () in
   let time () = Some (Ptime_clock.now ()) in
+  let* data = trust_anchors () in
   let cas = decode_pem_multiple data in
-  match cas with
+  let* extra_data = extra_trust_anchors () in
+  let extra_cas = decode_pem_multiple extra_data in
+  match extra_cas @ cas with
   | [] -> Error (`Msg ("ca-certs: empty trust anchors.\n" ^ issue))
-  | _ -> Ok (X509.Authenticator.chain_of_trust ?crls ?allowed_hashes ~time cas)
+  | cas ->
+      Ok (X509.Authenticator.chain_of_trust ?crls ?allowed_hashes ~time cas)
