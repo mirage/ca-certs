@@ -65,12 +65,15 @@ let ( let* ) = Result.bind
 let windows_trust_anchors () =
   let* anchors = get_anchors () in
   let cert_list =
-    List.fold_left (fun acc cert ->
+    List.fold_left
+      (fun acc cert ->
         match X509.Certificate.decode_der cert with
         | Ok cert -> cert :: acc
-        | Error `Msg msg ->
-          Log.warn (fun m -> m "ignoring certificate: %s" msg);
-          acc)
+        | Error (`Msg msg) ->
+            Log.warn (fun m -> m "Failed to decode a trust anchor: %s" msg);
+            Log.debug (fun m ->
+                m "Full certificate:@.%a" (Ohex.pp_hexdump ()) cert);
+            acc)
       [] anchors
   in
   Ok (X509.Certificate.encode_pem_multiple cert_list)
