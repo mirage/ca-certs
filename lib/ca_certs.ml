@@ -70,7 +70,7 @@ let windows_trust_anchors () =
         match X509.Certificate.decode_der cert with
         | Ok cert -> cert :: acc
         | Error (`Msg msg) ->
-            Log.warn (fun m -> m "Failed to decode a trust anchor: %s" msg);
+            Log.warn (fun m -> m "Ignoring undecodable trust anchor: %s." msg);
             Log.debug (fun m ->
                 m "Full certificate:@.%a" (Ohex.pp_hexdump ()) cert);
             acc)
@@ -107,48 +107,19 @@ let trust_anchors () =
             Bos.OS.Cmd.(run_out cmd |> out_string |> success)
         | s -> Error (`Msg ("ca-certs: unknown system " ^ s ^ ".\n" ^ issue)))
 
+let decode_pem_multiple data =
+  X509.Certificate.fold_decode_pem_multiple
+    (fun acc -> function
+      | Ok t -> t :: acc
+      | Error (`Msg msg) ->
+          Log.warn (fun m -> m "Ignoring undecodable trust anchor: %s." msg);
+          acc)
+    [] data
+
 let authenticator ?crls ?allowed_hashes () =
   let* data = trust_anchors () in
   let time () = Some (Ptime_clock.now ()) in
-  (* we cannot use decode_pem_multiple since this fails on the first
-     undecodable certificate - while we'd like to stay operational, and ignore
-     some certificates *)
-  let d = "-----" in
-  let new_cert = d ^ "BEGIN CERTIFICATE" ^ d
-  and end_of_cert = d ^ "END CERTIFICATE" ^ d in
-  let len_new = String.length new_cert
-  and len_end = String.length end_of_cert in
-  let lines = String.split_on_char '\n' data in
-  let it, cas =
-    List.fold_left
-      (fun (acc, cas) line ->
-        match acc with
-        | None
-          when String.length line >= len_new
-               && String.(equal (sub line 0 len_new) new_cert) ->
-            (Some [ line ], cas)
-        | None ->
-            Log.debug (fun m -> m "ignoring line %s" line);
-            (None, cas)
-        | Some lines
-          when String.length line >= len_end
-               && String.(equal (sub line 0 len_end) end_of_cert) -> (
-            let data = String.concat "\n" (List.rev (line :: lines)) in
-            match X509.Certificate.decode_pem data with
-            | Ok ca -> (None, ca :: cas)
-            | Error (`Msg msg) ->
-                Log.warn (fun m -> m "Failed to decode a trust anchor %s." msg);
-                Log.debug (fun m -> m "Full certificate:@.%s" data);
-                (None, cas))
-        | Some lines -> (Some (line :: lines), cas))
-      (None, []) lines
-  in
-  (match it with
-  | None -> ()
-  | Some lines ->
-      Log.debug (fun m ->
-          m "ignoring leftover data: %s" (String.concat "\n" (List.rev lines))));
-  let cas = List.rev cas in
+  let cas = decode_pem_multiple data in
   match cas with
   | [] -> Error (`Msg ("ca-certs: empty trust anchors.\n" ^ issue))
   | _ -> Ok (X509.Authenticator.chain_of_trust ?crls ?allowed_hashes ~time cas)
