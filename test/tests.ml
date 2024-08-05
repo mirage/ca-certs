@@ -971,10 +971,7 @@ let tests tas =
   List.map
     (fun (name, data, time) ->
       let host = Domain_name.(of_string_exn name |> host_exn)
-      and chain =
-        Result.get_ok
-          (X509.Certificate.decode_pem_multiple data)
-      in
+      and chain = Result.get_ok (X509.Certificate.decode_pem_multiple data) in
       ( name,
         `Quick,
         test_one ?time tas (Ok (Some (chain, List.hd chain))) host chain ))
@@ -982,10 +979,7 @@ let tests tas =
   @ List.map
       (fun (name, result, data, time) ->
         let host = Domain_name.(of_string_exn name |> host_exn)
-        and chain =
-          Result.get_ok
-            (X509.Certificate.decode_pem_multiple data)
-        in
+        and chain = Result.get_ok (X509.Certificate.decode_pem_multiple data) in
         (name, `Quick, test_one ?time tas (Error (result host chain)) host chain))
       err_tests
 

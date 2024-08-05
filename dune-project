@@ -12,8 +12,8 @@
  (name ca-certs)
  (depends
   bos fpath ptime logs
-  (mirage-crypto (< 1.0.0))
-  (x509 (and (>= 0.13.0) (< 1.0.0)))
+  (mirage-crypto (>= 1.0.0))
+  (x509 (>= 1.0.0))
   (ocaml (>= 4.08.0))
   (alcotest :with-test)
   (fmt (and :with-test (>= 0.8.7))))
