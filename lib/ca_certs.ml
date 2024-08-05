@@ -53,31 +53,28 @@ external iter_on_anchors : (string -> unit) -> unit = "ca_certs_iter_on_anchors"
 
 let get_anchors () =
   let der_list = ref [] in
-  match iter_on_anchors (fun der_cert ->
-      Logs.debug (fun m -> m "cert: %a" (Ohex.pp_hexdump ()) der_cert);
-      der_list := der_cert :: !der_list)
-  with
+  match iter_on_anchors (fun der_cert -> der_list := der_cert :: !der_list) with
   | () -> Ok !der_list
   | exception Failure msg -> Error (`Msg msg)
 
 let ( let* ) = Result.bind
-
-let rec map_m f l =
-  match l with
-  | [] -> Ok []
-  | x :: xs ->
-      let* y = f x in
-      let* ys = map_m f xs in
-      Ok (y :: ys)
 
 (** Load certificates from Windows' ["ROOT"] system certificate store.
     The C API returns a list of DER-encoded certificates. These are decoded and
     reencoded as a single PEM certificate. *)
 let windows_trust_anchors () =
   let* anchors = get_anchors () in
-  Logs.info (fun m -> m "found %u anchors" (List.length anchors));
-  let* cert_list = map_m X509.Certificate.decode_der anchors in
-  Logs.info (fun m -> m "cert list is %u" (List.length cert_list));
+  Log.info (fun m -> m "found %u anchors" (List.length anchors));
+  let cert_list =
+    List.fold_left (fun acc cert ->
+        match X509.Certificate.decode_der cert with
+        | Ok cert -> cert :: acc
+        | Error `Msg msg ->
+          Log.warn (fun m -> m "ignoring certificate: %s" msg);
+          acc)
+      [] anchors
+  in
+  Log.info (fun m -> m "cert list is %u" (List.length cert_list));
   Ok (X509.Certificate.encode_pem_multiple cert_list)
 
 let trust_anchors () =
