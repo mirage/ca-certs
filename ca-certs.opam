@@ -20,9 +20,11 @@ depends: [
   "fpath"
   "ptime"
   "logs"
-  "mirage-crypto" {< "1.0.0"}
-  "x509" {>= "0.13.0" & < "1.0.0"}
+  "digestif" {>= "1.2.0"}
+  "mirage-crypto" {>= "1.0.0"}
+  "x509" {>= "1.0.0"}
   "ocaml" {>= "4.08.0"}
+  "ohex" {>= "0.2.0"}
   "alcotest" {with-test}
   "fmt" {with-test & >= "0.8.7"}
 ]
