@@ -1016,6 +1016,12 @@ let ta () =
       Ok (List.rev cas))
 
 let () =
-  let tas = Result.get_ok (ta ()) in
-  Alcotest.run "verification tests"
-    [ ("X509 certificate validation", tests tas) ]
+  Logs.set_reporter (Logs_fmt.reporter ());
+  Logs.set_level ~all:true (Some Logs.Debug);
+  match ta () with
+  | Ok tas ->
+    Alcotest.run "verification tests"
+      [ ("X509 certificate validation", tests tas) ]
+  | Error `Msg msg ->
+    Logs.err (fun m -> m "error %s in ta()" msg);
+    exit 2

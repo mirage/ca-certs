@@ -1,7 +1,7 @@
 (library
  (name ca_certs)
  (public_name ca-certs)
- (libraries mirage-crypto x509 bos fpath logs ptime.clock.os digestif)
+ (libraries mirage-crypto x509 bos fpath logs ptime.clock.os digestif ohex)
  (foreign_stubs
   (language c)
   (names ca_certs_stubs))

@@ -53,7 +53,10 @@ external iter_on_anchors : (string -> unit) -> unit = "ca_certs_iter_on_anchors"
 
 let get_anchors () =
   let der_list = ref [] in
-  match iter_on_anchors (fun der_cert -> der_list := (String.of_bytes (Bytes.of_string der_cert)) :: !der_list) with
+  match iter_on_anchors (fun der_cert ->
+      Logs.debug (fun m -> m "cert: %a" (Ohex.pp_hexdump ()) der_cert);
+      der_list := der_cert :: !der_list)
+  with
   | () -> Ok !der_list
   | exception Failure msg -> Error (`Msg msg)
 
@@ -72,7 +75,9 @@ let rec map_m f l =
     reencoded as a single PEM certificate. *)
 let windows_trust_anchors () =
   let* anchors = get_anchors () in
+  Logs.info (fun m -> m "found %u anchors" (List.length anchors));
   let* cert_list = map_m X509.Certificate.decode_der anchors in
+  Logs.info (fun m -> m "cert list is %u" (List.length cert_list));
   Ok (X509.Certificate.encode_pem_multiple cert_list)
 
 let trust_anchors () =
