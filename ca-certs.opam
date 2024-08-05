@@ -24,6 +24,7 @@ depends: [
   "mirage-crypto" {>= "1.0.0"}
   "x509" {>= "1.0.0"}
   "ocaml" {>= "4.08.0"}
+  "ohex" {>= "0.2.0"}
   "alcotest" {with-test}
   "fmt" {with-test & >= "0.8.7"}
 ]
