@@ -64,7 +64,6 @@ let ( let* ) = Result.bind
     reencoded as a single PEM certificate. *)
 let windows_trust_anchors () =
   let* anchors = get_anchors () in
-  Log.info (fun m -> m "found %u anchors" (List.length anchors));
   let cert_list =
     List.fold_left (fun acc cert ->
         match X509.Certificate.decode_der cert with
@@ -74,7 +73,6 @@ let windows_trust_anchors () =
           acc)
       [] anchors
   in
-  Log.info (fun m -> m "cert list is %u" (List.length cert_list));
   Ok (X509.Certificate.encode_pem_multiple cert_list)
 
 let trust_anchors () =

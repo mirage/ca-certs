@@ -1024,4 +1024,4 @@ let () =
       [ ("X509 certificate validation", tests tas) ]
   | Error `Msg msg ->
     Logs.err (fun m -> m "error %s in ta()" msg);
-    exit 2
+    exit 1

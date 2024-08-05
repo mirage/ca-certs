@@ -25,5 +25,4 @@ jobs:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
       - run: opam install . --deps-only --with-test
       - run: opam exec -- dune build
-      - run: echo "OCAMLRUNPARAM=b" >> $env:GITHUB_ENV
       - run: opam exec -- dune runtest
