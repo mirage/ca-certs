@@ -70,7 +70,7 @@ let windows_trust_anchors () =
         match X509.Certificate.decode_der cert with
         | Ok cert -> cert :: acc
         | Error (`Msg msg) ->
-            Log.warn (fun m -> m "Failed to decode a trust anchor: %s" msg);
+            Log.warn (fun m -> m "Ignoring undecodable trust anchor: %s." msg);
             Log.debug (fun m ->
                 m "Full certificate:@.%a" (Ohex.pp_hexdump ()) cert);
             acc)
@@ -108,13 +108,13 @@ let trust_anchors () =
         | s -> Error (`Msg ("ca-certs: unknown system " ^ s ^ ".\n" ^ issue)))
 
 let decode_pem_multiple data =
-  (* we cannot use [X509.Certificate.decode_pem_multiple] since this fails on the first
-     undecodable certificate - while we'd like to stay operational, and ignore
-     some certificates *)
   X509.Certificate.fold_decode_pem_multiple
-    (fun acc -> function Ok t -> t :: acc | Error _ -> acc)
+    (fun acc -> function
+      | Ok t -> t :: acc
+      | Error (`Msg msg) ->
+          Log.warn (fun m -> m "Ignoring undecodable trust anchor: %s." msg);
+          acc)
     [] data
-  |> List.rev
 
 let authenticator ?crls ?allowed_hashes () =
   let* data = trust_anchors () in
