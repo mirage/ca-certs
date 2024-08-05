@@ -53,7 +53,7 @@ external iter_on_anchors : (string -> unit) -> unit = "ca_certs_iter_on_anchors"
 
 let get_anchors () =
   let der_list = ref [] in
-  match iter_on_anchors (fun der_cert -> der_list := der_cert :: !der_list) with
+  match iter_on_anchors (fun der_cert -> der_list := (String.of_bytes (Bytes.of_string der_cert)) :: !der_list) with
   | () -> Ok !der_list
   | exception Failure msg -> Error (`Msg msg)
 
