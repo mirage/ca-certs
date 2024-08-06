@@ -984,36 +984,18 @@ let tests tas =
       err_tests
 
 let ta () =
-  Result.bind (Ca_certs.trust_anchors ()) (fun data ->
-      (* we cannot use decode_pem_multiple since this fails on the first
-         undecodable certificate - while we'd like to stay operational, and
-         ignore some certificates *)
-      let d = "-----" in
-      let new_cert = d ^ "BEGIN CERTIFICATE" ^ d
-      and end_of_cert = d ^ "END CERTIFICATE" ^ d in
-      let len_new = String.length new_cert
-      and len_end = String.length end_of_cert in
-      let lines = String.split_on_char '\n' data in
-      let _, cas =
-        List.fold_left
-          (fun (acc, cas) line ->
-            match acc with
-            | None
-              when String.length line >= len_new
-                   && String.(equal (sub line 0 len_new) new_cert) ->
-                (Some [ line ], cas)
-            | None -> (None, cas)
-            | Some lines
-              when String.length line >= len_end
-                   && String.(equal (sub line 0 len_end) end_of_cert) -> (
-                let data = String.concat "\n" (List.rev (line :: lines)) in
-                match X509.Certificate.decode_pem data with
-                | Ok ca -> (None, ca :: cas)
-                | Error (`Msg _) -> (None, cas))
-            | Some lines -> (Some (line :: lines), cas))
-          (None, []) lines
-      in
-      Ok (List.rev cas))
+  let ( let* ) = Result.bind in
+  let* data = Ca_certs.trust_anchors () in
+  let cas =
+    X509.Certificate.fold_decode_pem_multiple
+      (fun acc -> function
+        | Ok t -> t :: acc
+        | Error (`Msg msg) ->
+            Logs.warn (fun m -> m "Ignoring undecodable trust anchor: %s." msg);
+            acc)
+      [] data
+  in
+  Ok cas
 
 let () =
   Logs.set_reporter (Logs_fmt.reporter ());
