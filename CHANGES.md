@@ -1,3 +1,11 @@
+# v1.0.0 (2024-08-06)
+
+* Use X509.Certificate.fold_decode_pem, available in x509 1.0.0 (#34 #35 @art-w
+  @hannesm)
+* Remove usage of cstruct, update to x509 1.0.0 and mirage-crypto 1.0.0 API
+  (#32 @dinosaure @hannesm)
+* Remove astring dependency (#26 @hannesm)
+
 # v0.2.3 (2022-09-02)
 
 * Respect the environment variable SSL_CERT_FILE as well (suggested in #22 by
