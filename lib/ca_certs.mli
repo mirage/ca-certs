@@ -4,8 +4,11 @@ val authenticator :
   unit ->
   (X509.Authenticator.t, [> `Msg of string ]) result
 (** [authenticator ~crls ~allowed_hashes ()] detects the root CAs (trust
-    anchors) in the operating system's trust store using {!trust_anchors}. It
-    constructs an authenticator with the current timestamp {!Ptime_clock.now},
+    anchors) in the operating system's trust store using {!trust_anchors}.
+    Additional CAs can be enabled by setting the environment variable
+    [OCAML_EXTRA_CA_CERTS] to a file path containing more trust anchors.
+
+    It constructs an authenticator with the current timestamp {!Ptime_clock.now},
     and the provided [~crls] and [~allowed_hashes] arguments. The resulting
     authenticator can be used for {!Tls.Config.client}.
     Returns [Error `Msg msg] if detection did not succeed. *)
