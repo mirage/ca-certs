@@ -50,3 +50,4 @@ tags: ["org:mirage"]
 depexts: [
   ["ca_root_nss"] {os = "freebsd"}
 ]
+x-maintenance-intent: [ "(latest)" ]
