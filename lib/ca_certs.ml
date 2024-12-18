@@ -70,7 +70,7 @@ let windows_trust_anchors () =
         match X509.Certificate.decode_der cert with
         | Ok cert -> cert :: acc
         | Error (`Msg msg) ->
-            Log.warn (fun m -> m "Ignoring undecodable trust anchor: %s." msg);
+            Log.debug (fun m -> m "Ignoring undecodable trust anchor: %s." msg);
             Log.debug (fun m ->
                 m "Full certificate:@.%a" (Ohex.pp_hexdump ()) cert);
             acc)
@@ -86,10 +86,10 @@ let trust_anchors () =
       (Sys.getenv_opt "SSL_CERT_FILE", Sys.getenv_opt "NIX_SSL_CERT_FILE")
     with
     | Some x, _ ->
-        Log.info (fun m -> m "using %s (from SSL_CERT_FILE)" x);
+        Log.debug (fun m -> m "using %s (from SSL_CERT_FILE)" x);
         detect_one x
     | _, Some x ->
-        Log.info (fun m -> m "using %s (from NIX_SSL_CERT_FILE)" x);
+        Log.debug (fun m -> m "using %s (from NIX_SSL_CERT_FILE)" x);
         detect_one x
     | None, None -> (
         let cmd = Bos.Cmd.(v "uname" % "-s") in
@@ -112,7 +112,7 @@ let decode_pem_multiple data =
     (fun acc -> function
       | Ok t -> t :: acc
       | Error (`Msg msg) ->
-          Log.warn (fun m -> m "Ignoring undecodable trust anchor: %s." msg);
+          Log.debug (fun m -> m "Ignoring undecodable trust anchor: %s." msg);
           acc)
     [] data
 
