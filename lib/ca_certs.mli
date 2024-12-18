@@ -12,7 +12,12 @@ val authenticator :
 
 val trust_anchors : unit -> (string, [> `Msg of string ]) result
 (** [trust_anchors ()] detects the root CAs (trust anchors) in the operating
-    system's trust store. On Unix systems, if the environment variable
-    [SSL_CERT_FILE] is set, its value is used as path to the trust anchors.
-    Otherwise, if [NIX_SSL_CERT_FILE] is set, its value is used.
+    system's trust store. Additional CAs can be provided by setting the
+    environment variable [OCAML_EXTRA_CA_CERTS] to a filename containing
+    pem-encoded X509 certificates.
+
+    On Unix systems, if the environment variable [SSL_CERT_FILE] is set, its
+    value is used as path to the system trust anchors.  Otherwise, if
+    [NIX_SSL_CERT_FILE] is set, its value is used.
+
     The successful result is a list of pem-encoded X509 certificates. *)

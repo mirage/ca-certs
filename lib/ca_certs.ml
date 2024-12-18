@@ -78,7 +78,7 @@ let windows_trust_anchors () =
   in
   Ok (X509.Certificate.encode_pem_multiple cert_list)
 
-let trust_anchors () =
+let system_trust_anchors () =
   if Sys.win32 then windows_trust_anchors ()
   else
     (* NixOS is special and sets "NIX_SSL_CERT_FILE" as location during builds *)
@@ -107,6 +107,22 @@ let trust_anchors () =
             Bos.OS.Cmd.(run_out cmd |> out_string |> success)
         | s -> Error (`Msg ("ca-certs: unknown system " ^ s ^ ".\n" ^ issue)))
 
+let extra_trust_anchors () =
+  match Sys.getenv_opt "OCAML_EXTRA_CA_CERTS" with
+  | None -> Ok ""
+  | Some x ->
+      Log.info (fun m -> m "using %s (from OCAML_EXTRA_CA_CERTS)" x);
+      detect_one x
+
+let trust_anchors () =
+  let* cas = system_trust_anchors () in
+  match extra_trust_anchors () with
+  | Ok "" -> Ok cas
+  | Ok extra_cas -> Ok (cas ^ "\n" ^ extra_cas)
+  | Error (`Msg msg) ->
+      Log.warn (fun m -> m "Ignoring extra trust anchors: %s." msg);
+      Ok cas
+
 let decode_pem_multiple data =
   X509.Certificate.fold_decode_pem_multiple
     (fun acc -> function
@@ -118,8 +134,8 @@ let decode_pem_multiple data =
 
 let authenticator ?crls ?allowed_hashes () =
   let* data = trust_anchors () in
-  let time () = Some (Ptime_clock.now ()) in
-  let cas = decode_pem_multiple data in
-  match cas with
+  match decode_pem_multiple data with
   | [] -> Error (`Msg ("ca-certs: empty trust anchors.\n" ^ issue))
-  | _ -> Ok (X509.Authenticator.chain_of_trust ?crls ?allowed_hashes ~time cas)
+  | cas ->
+      let time () = Some (Ptime_clock.now ()) in
+      Ok (X509.Authenticator.chain_of_trust ?crls ?allowed_hashes ~time cas)
