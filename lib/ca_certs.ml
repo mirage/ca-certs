@@ -16,16 +16,16 @@ let detect_one path =
   | _ ->
       Error
         (`Msg
-          ("ca-certs: no trust anchor file found, looked into " ^ path ^ ".\n"
-         ^ issue))
+           ("ca-certs: no trust anchor file found, looked into " ^ path ^ ".\n"
+          ^ issue))
 
 let detect_list paths =
   let rec one = function
     | [] ->
         Error
           (`Msg
-            ("ca-certs: no trust anchor file found, looked into "
-           ^ String.concat ", " paths ^ ".\n" ^ issue))
+             ("ca-certs: no trust anchor file found, looked into "
+            ^ String.concat ", " paths ^ ".\n" ^ issue))
     | path :: paths -> (
         match detect_one path with Ok data -> Ok data | Error _ -> one paths)
   in
@@ -62,9 +62,9 @@ let get_anchors () =
 
 let ( let* ) = Result.bind
 
-(** Load certificates from Windows' ["ROOT"] system certificate store.
-    The C API returns a list of DER-encoded certificates. These are decoded and
-    reencoded as a single PEM certificate. *)
+(** Load certificates from Windows' ["ROOT"] system certificate store. The C API
+    returns a list of DER-encoded certificates. These are decoded and reencoded
+    as a single PEM certificate. *)
 let windows_trust_anchors () =
   let* anchors = get_anchors () in
   let cert_list, err_count =
