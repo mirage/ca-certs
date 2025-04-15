@@ -1,3 +1,11 @@
+# v1.0.1 (2025-04-15)
+
+* Add OCAML_EXTRA_CA_CERTS env variable (#30 @art-w)
+* macOS: add additional keychain path `/Library/Keychains/System.keychain`
+  (#28 @ajbt200128)
+* Demote log levels of trust anchor parsing failures (now on the debug level),
+  log a single warning message how many failures occured (#36 @Julow)
+
 # v1.0.0 (2024-08-06)
 
 * Use X509.Certificate.fold_decode_pem, available in x509 1.0.0 (#34 #35 @art-w
