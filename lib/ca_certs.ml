@@ -46,8 +46,11 @@ let linux_locations =
 let openbsd_location = "/etc/ssl/cert.pem"
 let freebsd_location = "/usr/local/share/certs/ca-root-nss.crt"
 
-let macos_keychain_location =
-  "/System/Library/Keychains/SystemRootCertificates.keychain"
+let macos_keychain_locations =
+  [
+    "/System/Library/Keychains/SystemRootCertificates.keychain";
+    "/Library/Keychains/System.keychain";
+  ]
 
 external iter_on_anchors : (string -> unit) -> unit = "ca_certs_iter_on_anchors"
 
@@ -99,12 +102,41 @@ let system_trust_anchors () =
         | "OpenBSD" -> detect_one openbsd_location
         | "Linux" -> detect_list linux_locations
         | "Darwin" ->
-            let cmd =
-              Bos.Cmd.(
-                v "security" % "find-certificate" % "-a" % "-p"
-                % macos_keychain_location)
-            in
-            Bos.OS.Cmd.(run_out cmd |> out_string |> success)
+            macos_keychain_locations
+            |> List.map (fun path ->
+                   let cmd =
+                     Bos.Cmd.(
+                       v "security" % "find-certificate" % "-a" % "-p" % path)
+                   in
+                   Bos.OS.Cmd.(run_out cmd |> out_string |> success))
+            |> List.fold_left
+                 (fun acc cert ->
+                   match (cert, acc) with
+                   | Ok cert, Ok acc -> Ok (cert ^ "\n" ^ acc)
+                   | Ok cert, Error (`Msg msg) ->
+                       Log.warn (fun m ->
+                           m
+                             "ignoring error %s (got another set of \
+                              certificates)"
+                             msg);
+                       Ok cert
+                   | Error e, Ok "" -> Error e
+                   | Error (`Msg msg), Ok x ->
+                       Log.warn (fun m ->
+                           m
+                             "ignoring error %s (already have another set of \
+                              certificates)"
+                             msg);
+                       Ok x
+                   | Error e, Error (`Msg msg) ->
+                       Log.warn (fun m ->
+                           m "ignoring error %s (got another error)" msg);
+                       Error e)
+                 (Ok "")
+            |> Result.map_error (function `Msg msg ->
+                   `Msg
+                     ("ca-certs: no trust anchor file found on macOS: " ^ msg
+                    ^ ".\n" ^ issue))
         | s -> Error (`Msg ("ca-certs: unknown system " ^ s ^ ".\n" ^ issue)))
 
 let extra_trust_anchors () =
