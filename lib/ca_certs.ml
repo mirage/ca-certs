@@ -16,16 +16,16 @@ let detect_one path =
   | _ ->
       Error
         (`Msg
-          ("ca-certs: no trust anchor file found, looked into " ^ path ^ ".\n"
-         ^ issue))
+           ("ca-certs: no trust anchor file found, looked into " ^ path ^ ".\n"
+          ^ issue))
 
 let detect_list paths =
   let rec one = function
     | [] ->
         Error
           (`Msg
-            ("ca-certs: no trust anchor file found, looked into "
-           ^ String.concat ", " paths ^ ".\n" ^ issue))
+             ("ca-certs: no trust anchor file found, looked into "
+            ^ String.concat ", " paths ^ ".\n" ^ issue))
     | path :: paths -> (
         match detect_one path with Ok data -> Ok data | Error _ -> one paths)
   in
@@ -62,23 +62,25 @@ let get_anchors () =
 
 let ( let* ) = Result.bind
 
-(** Load certificates from Windows' ["ROOT"] system certificate store.
-    The C API returns a list of DER-encoded certificates. These are decoded and
-    reencoded as a single PEM certificate. *)
+(** Load certificates from Windows' ["ROOT"] system certificate store. The C API
+    returns a list of DER-encoded certificates. These are decoded and reencoded
+    as a single PEM certificate. *)
 let windows_trust_anchors () =
   let* anchors = get_anchors () in
-  let cert_list =
+  let cert_list, err_count =
     List.fold_left
-      (fun acc cert ->
+      (fun (acc, err_count) cert ->
         match X509.Certificate.decode_der cert with
-        | Ok cert -> cert :: acc
+        | Ok cert -> (cert :: acc, err_count)
         | Error (`Msg msg) ->
-            Log.warn (fun m -> m "Ignoring undecodable trust anchor: %s." msg);
+            Log.debug (fun m -> m "Ignoring undecodable trust anchor: %s." msg);
             Log.debug (fun m ->
                 m "Full certificate:@.%a" (Ohex.pp_hexdump ()) cert);
-            acc)
-      [] anchors
+            (acc, err_count + 1))
+      ([], 0) anchors
   in
+  if err_count > 0 then
+    Log.warn (fun m -> m "Ignored %u trust anchors." err_count);
   Ok (X509.Certificate.encode_pem_multiple cert_list)
 
 let system_trust_anchors () =
@@ -89,10 +91,10 @@ let system_trust_anchors () =
       (Sys.getenv_opt "SSL_CERT_FILE", Sys.getenv_opt "NIX_SSL_CERT_FILE")
     with
     | Some x, _ ->
-        Log.info (fun m -> m "using %s (from SSL_CERT_FILE)" x);
+        Log.debug (fun m -> m "using %s (from SSL_CERT_FILE)" x);
         detect_one x
     | _, Some x ->
-        Log.info (fun m -> m "using %s (from NIX_SSL_CERT_FILE)" x);
+        Log.debug (fun m -> m "using %s (from NIX_SSL_CERT_FILE)" x);
         detect_one x
     | None, None -> (
         let cmd = Bos.Cmd.(v "uname" % "-s") in
@@ -156,13 +158,18 @@ let trust_anchors () =
       Ok cas
 
 let decode_pem_multiple data =
-  X509.Certificate.fold_decode_pem_multiple
-    (fun acc -> function
-      | Ok t -> t :: acc
-      | Error (`Msg msg) ->
-          Log.warn (fun m -> m "Ignoring undecodable trust anchor: %s." msg);
-          acc)
-    [] data
+  let tas, err_count =
+    X509.Certificate.fold_decode_pem_multiple
+      (fun (acc, err_count) -> function
+        | Ok t -> (t :: acc, err_count)
+        | Error (`Msg msg) ->
+            Log.debug (fun m -> m "Ignoring undecodable trust anchor: %s." msg);
+            (acc, err_count + 1))
+      ([], 0) data
+  in
+  if err_count > 0 then
+    Log.warn (fun m -> m "Ignored %u trust anchors." err_count);
+  tas
 
 let authenticator ?crls ?allowed_hashes () =
   let* data = trust_anchors () in
