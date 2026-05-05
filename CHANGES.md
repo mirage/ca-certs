@@ -1,3 +1,7 @@
+# v1.0.2 (2026-05-05)
+
+* Support DragonFlyBSD (#39 @mneumann)
+
 # v1.0.1 (2025-04-15)
 
 * Add OCAML_EXTRA_CA_CERTS env variable (#30 @art-w)
