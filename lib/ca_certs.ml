@@ -101,6 +101,7 @@ let system_trust_anchors () =
         let* os = Bos.OS.Cmd.(run_out cmd |> out_string |> success) in
         match os with
         | "FreeBSD" -> detect_one freebsd_location
+        | "DragonFly" -> detect_one freebsd_location
         | "OpenBSD" -> detect_one openbsd_location
         | "Linux" -> detect_list linux_locations
         | "Darwin" ->

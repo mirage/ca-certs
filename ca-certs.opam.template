@@ -14,6 +14,6 @@ build: [
 ]
 tags: ["org:mirage"]
 depexts: [
-  ["ca_root_nss"] {os = "freebsd"}
+  ["ca_root_nss"] {os = "freebsd" | os = "dragonfly"}
 ]
 x-maintenance-intent: [ "(latest)" ]
