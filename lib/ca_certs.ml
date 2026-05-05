@@ -45,7 +45,6 @@ let linux_locations =
 (* from https://golang.org/src/crypto/x509/root_bsd.go *)
 let openbsd_location = "/etc/ssl/cert.pem"
 let freebsd_location = "/usr/local/share/certs/ca-root-nss.crt"
-let dragonfly_location = "/usr/local/share/certs/ca-root-nss.crt"
 
 let macos_keychain_locations =
   [
@@ -102,8 +101,8 @@ let system_trust_anchors () =
         let* os = Bos.OS.Cmd.(run_out cmd |> out_string |> success) in
         match os with
         | "FreeBSD" -> detect_one freebsd_location
+        | "DragonFly" -> detect_one freebsd_location
         | "OpenBSD" -> detect_one openbsd_location
-        | "DragonFly" -> detect_one dragonfly_location
         | "Linux" -> detect_list linux_locations
         | "Darwin" ->
             macos_keychain_locations
